@@ -1,6 +1,7 @@
 import { useEffect, useState } from "endr";
 import "./App.css";
 import JTLogo from "../src/assets/jtlogo.png";
+import SpikeLogo from "../src/assets/spikelogo.png";
 import Button from "./Button";
 
 // tablet size 262 x 159 x 7.7 mm
@@ -57,7 +58,9 @@ function App() {
 
   return (
     <div className="flex">
-      <div className="w-1/6 p-4 h-screen"></div>
+      <div className="w-1/6 p-4 h-screen">
+        <img src={SpikeLogo} className="w-full" />
+      </div>
       <div className="relative items-center justify-center h-screen w-3/4 ">
         {initialProfiles.map((profile, index) => (
           <img
