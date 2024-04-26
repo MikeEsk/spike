@@ -1,6 +1,7 @@
 import { useEffect, useState } from "endr";
 import "./App.css";
 import JTLogo from "../src/assets/jtlogo.png";
+import Button from "./Button";
 
 // tablet size 262 x 159 x 7.7 mm
 // Screen Resolution	800 x 1280 pixels
@@ -55,56 +56,70 @@ function App() {
   };
 
   return (
-    <div className="relative items-center justify-center h-screen bg-orange-200">
-      {initialProfiles.map((profile, index) => (
-        <img
-          key={profile.id}
-          src={profile.imageUrl}
-          alt={profile.name}
-          className="absolute rounded-3xl h-20 w-20"
-          style={{
-            left: `calc(50% + ${
-              Math.cos((2 * Math.PI * index) / initialProfiles.length) *
-              size.width
-            }px)`,
-            top: `calc(50% + ${
-              Math.sin((2 * Math.PI * index) / initialProfiles.length) *
-              size.height
-            }px)`,
-            transform: "translate(-50%, -50%)",
-          }}
-          onClick={() => handleProfileClick(profile)}
-        />
-      ))}
-      <div
-        className="absolute flex justify-center items-center rounded-3xl h-24 w-24"
-        style={{
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          backgroundImage: `url(${JTLogo})`,
-          backgroundSize: "cover",
-        }}
-      >
-        {selectedProfiles.map((profile, index) => (
+    <div className="flex">
+      <div className="w-1/6 p-4 h-screen"></div>
+      <div className="relative items-center justify-center h-screen w-3/4 ">
+        {initialProfiles.map((profile, index) => (
           <img
             key={profile.id}
             src={profile.imageUrl}
             alt={profile.name}
-            className="absolute w-18 h-18 rounded-full"
+            className="absolute rounded-3xl h-20 w-20"
             style={{
               left: `calc(50% + ${
-                120 * Math.cos((2 * Math.PI * index) / 4)
+                Math.cos((2 * Math.PI * index) / initialProfiles.length) *
+                size.width
               }px)`,
-              top: `calc(50% + ${120 * Math.sin((2 * Math.PI * index) / 4)}px)`,
+              top: `calc(50% + ${
+                Math.sin((2 * Math.PI * index) / initialProfiles.length) *
+                size.height
+              }px)`,
               transform: "translate(-50%, -50%)",
-              boxShadow: `${
-                index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
-              }`,
             }}
+            onClick={() => handleProfileClick(profile)}
           />
         ))}
+        <div
+          className="absolute flex align-middle justify-center items-center rounded-3xl h-24 w-24"
+          style={{
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundImage: `url(${JTLogo})`,
+            backgroundSize: "cover",
+          }}
+        >
+          {selectedProfiles.length > 0 && (
+            <Button
+              className="absolute px-3 py-1 -bottom-2 -right-2 text-xs"
+              onClick={() => setSelectedProfiles([])}
+            >
+              reset
+            </Button>
+          )}
+          {selectedProfiles.map((profile, index) => (
+            <img
+              key={profile.id}
+              src={profile.imageUrl}
+              alt={profile.name}
+              className="absolute w-18 h-18 rounded-full"
+              style={{
+                left: `calc(50% + ${
+                  120 * Math.cos((2 * Math.PI * index) / 4)
+                }px)`,
+                top: `calc(50% + ${
+                  120 * Math.sin((2 * Math.PI * index) / 4)
+                }px)`,
+                transform: "translate(-50%, -50%)",
+                boxShadow: `${
+                  index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
+                }`,
+              }}
+            />
+          ))}
+        </div>
       </div>
+      <div className=" w-1/6"></div>
     </div>
   );
 }
