@@ -86,7 +86,7 @@ export default ({
     }
 
     if (selectedProfiles.length === 3) {
-      setTimeout(() => setLoadThunderdome(true), 0);
+      setTimeout(() => setLoadThunderdome(true), 4000);
     }
   };
 
