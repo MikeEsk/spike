@@ -3,9 +3,11 @@ import "./App.css";
 import JTLogo from "../src/assets/jtlogo.png";
 import SpikeLogo from "../src/assets/spikelogo.png";
 import Button from "./Button";
+import { Profile } from "./App";
 
 const ProfileTile = ({
   profile,
+  itemCount,
   index,
   onClick,
   size,
@@ -13,6 +15,7 @@ const ProfileTile = ({
   profile: Profile;
   index: number;
   onClick: () => void;
+  itemCount: number;
   size: { width: number; height: number };
 }) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -26,10 +29,10 @@ const ProfileTile = ({
       }`}
       style={{
         left: `calc(50% + ${
-          Math.cos((2 * Math.PI * index) / initialProfiles.length) * size.width
+          Math.cos((2 * Math.PI * index) / itemCount) * size.width
         }px)`,
         top: `calc(50% + ${
-          Math.sin((2 * Math.PI * index) / initialProfiles.length) * size.height
+          Math.sin((2 * Math.PI * index) / itemCount) * size.height
         }px)`,
         transform: "translate(-50%, -50%)",
       }}
@@ -50,35 +53,21 @@ const ProfileTile = ({
   );
 };
 
-type Profile = {
-  id: number;
-  name: string;
-  imageUrl: string;
-};
-
-const initialProfiles: Profile[] = [
-  { id: 1, name: "Casey", imageUrl: "https://picsum.photos/200?random=1" },
-  { id: 2, name: "Nate", imageUrl: "https://picsum.photos/200?random=2" },
-  { id: 3, name: "Andrew", imageUrl: "https://picsum.photos/200?random=3" },
-  { id: 4, name: "Bobby", imageUrl: "https://picsum.photos/200?random=4" },
-  { id: 5, name: "Ross", imageUrl: "https://picsum.photos/200?random=5" },
-  { id: 6, name: "Sam", imageUrl: "https://picsum.photos/200?random=6" },
-  { id: 7, name: "Travis", imageUrl: "https://picsum.photos/200?random=7" },
-  { id: 8, name: "Jared", imageUrl: "https://picsum.photos/200?random=8" },
-  { id: 9, name: "Glick", imageUrl: "https://picsum.photos/200?random=9" },
-  { id: 10, name: "Carter", imageUrl: "https://picsum.photos/200?random=10" },
-  { id: 11, name: "Jeff", imageUrl: "https://picsum.photos/200?random=11" },
-  { id: 12, name: "Zac", imageUrl: "https://picsum.photos/200?random=12" },
-  { id: 13, name: "Nolan", imageUrl: "https://picsum.photos/200?random=13" },
-  { id: 14, name: "Mike", imageUrl: "https://picsum.photos/200?random=13" },
-];
-
-export default ({ setProfilesSelected }) => {
+export default ({
+  profiles,
+  selectedProfiles,
+  setSelectedProfiles,
+  setLoadThunderdome,
+}: {
+  profiles: Profile[];
+  selectedProfiles: Profile[];
+  setSelectedProfiles: (profiles: Profile[]) => void;
+  setLoadThunderdome: (set: boolean) => void;
+}) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
     height: window.innerHeight / 2,
   });
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -97,24 +86,20 @@ export default ({ setProfilesSelected }) => {
     }
 
     if (selectedProfiles.length === 3) {
-      setTimeout(() => setProfilesSelected(true), 4000); // match spin duration
+      setTimeout(() => setLoadThunderdome(true), 0);
     }
   };
 
   return (
     <div className="flex overflow-hidden ">
       <div
-        className="w-1/6 p-4 bg-purple-700 z-100"
+        className="w-1/6 p-4 bg-purple-700"
         onClick={() => window.location.reload()}
       >
         <img src={SpikeLogo} className="w-full" />
       </div>
       <div className="relative h-screen w-3/4 items-center justify-center">
-        <div
-          className={`absolute flex w-full h-full top-0 right-0 items-center justify-center ${
-            selectedProfiles.length === 4 && ""
-          }`}
-        >
+        <div className="absolute flex w-full h-full top-0 right-0 items-center justify-center">
           <div
             className={`relative flex h-24 w-24 rounded-full ${
               selectedProfiles.length === 4 && "animate-exp-spin"
@@ -156,9 +141,10 @@ export default ({ setProfilesSelected }) => {
         </div>
 
         <div className="flex h-screen self-center animate-cw-spin">
-          {initialProfiles.map((profile, index) => (
+          {profiles.map((profile, index) => (
             <ProfileTile
               profile={profile}
+              itemCount={profiles.length}
               index={index}
               onClick={() => handleProfileClick(profile)}
               size={size}
@@ -166,7 +152,6 @@ export default ({ setProfilesSelected }) => {
           ))}
         </div>
       </div>
-      {/* </div> */}
       <div className="w-1/6 bg-purple-700"></div>
     </div>
   );
