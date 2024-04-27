@@ -44,10 +44,8 @@ function App() {
         height: window.innerHeight / 2.5,
       });
     };
-
     window.addEventListener("resize", updateSize);
     updateSize();
-    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   const handleProfileClick = (profile: Profile) => {
@@ -61,65 +59,73 @@ function App() {
       <div className="w-1/6 p-4 h-screen">
         <img src={SpikeLogo} className="w-full" />
       </div>
-      <div className="relative items-center justify-center h-screen w-3/4 ">
-        {initialProfiles.map((profile, index) => (
-          <img
-            key={profile.id}
-            src={profile.imageUrl}
-            alt={profile.name}
-            className="absolute rounded-3xl h-20 w-20"
-            style={{
-              left: `calc(50% + ${
-                Math.cos((2 * Math.PI * index) / initialProfiles.length) *
-                size.width
-              }px)`,
-              top: `calc(50% + ${
-                Math.sin((2 * Math.PI * index) / initialProfiles.length) *
-                size.height
-              }px)`,
-              transform: "translate(-50%, -50%)",
-            }}
-            onClick={() => handleProfileClick(profile)}
-          />
-        ))}
-        <div
-          className="absolute flex align-middle justify-center items-center rounded-3xl h-24 w-24"
-          style={{
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundImage: `url(${JTLogo})`,
-            backgroundSize: "cover",
-          }}
-        >
-          {selectedProfiles.length > 0 && (
-            <Button
-              className="absolute px-3 py-1 -bottom-2 -right-2 text-xs"
-              onClick={() => setSelectedProfiles([])}
-            >
-              reset
-            </Button>
-          )}
-          {selectedProfiles.map((profile, index) => (
-            <img
-              key={profile.id}
-              src={profile.imageUrl}
-              alt={profile.name}
-              className="absolute w-18 h-18 rounded-full"
+      <div className="flex h-screen w-3/4 items-center justify-center animate-cw-spin">
+        <div className="flex relative h-48 w-48 items-center justify-center">
+          {initialProfiles.map((profile, index) => (
+            <div
+              className="absolute h-20 w-20 p-1 items-center justify-center"
               style={{
                 left: `calc(50% + ${
-                  120 * Math.cos((2 * Math.PI * index) / 4)
+                  Math.cos((2 * Math.PI * index) / initialProfiles.length) *
+                  size.width
                 }px)`,
                 top: `calc(50% + ${
-                  120 * Math.sin((2 * Math.PI * index) / 4)
+                  Math.sin((2 * Math.PI * index) / initialProfiles.length) *
+                  size.height
                 }px)`,
                 transform: "translate(-50%, -50%)",
-                boxShadow: `${
-                  index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
-                }`,
               }}
-            />
+            >
+              <img
+                className="animate-ccw-spin rounded-xl"
+                key={profile.id}
+                src={profile.imageUrl}
+                alt={profile.name}
+                onClick={() => handleProfileClick(profile)}
+              />
+            </div>
           ))}
+
+          <div className="relative w-24 h-24 animate-ccw-spin">
+            <div
+              className="flex align-middle justify-center items-center rounded-full h-24 w-24"
+              style={{
+                left: "50%",
+                top: "50%",
+                backgroundImage: `url(${JTLogo})`,
+                backgroundSize: "cover",
+              }}
+            >
+              {selectedProfiles.length > 0 && (
+                <Button
+                  className="absolute px-3 py-1 -bottom-2 -right-2 text-xs"
+                  onClick={() => setSelectedProfiles([])}
+                >
+                  reset
+                </Button>
+              )}
+            </div>
+            {selectedProfiles.map((profile, index) => (
+              <img
+                key={profile.id}
+                src={profile.imageUrl}
+                alt={profile.name}
+                className="absolute w-18 h-18 rounded-3xl"
+                style={{
+                  left: `calc(50% + ${
+                    120 * Math.cos((2 * Math.PI * index) / 4)
+                  }px)`,
+                  top: `calc(50% + ${
+                    120 * Math.sin((2 * Math.PI * index) / 4)
+                  }px)`,
+                  transform: "translate(-50%, -50%)",
+                  boxShadow: `${
+                    index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
+                  }`,
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <div className=" w-1/6"></div>
