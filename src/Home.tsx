@@ -97,7 +97,7 @@ export default ({ setProfilesSelected }) => {
     }
 
     if (selectedProfiles.length === 3) {
-      setTimeout(() => setProfilesSelected(true), 4000);
+      setTimeout(() => setProfilesSelected(true), 4000); // match spin duration
     }
   };
 
