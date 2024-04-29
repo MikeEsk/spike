@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'endr'
-import './App.css'
-import JTLogo from './assets/jtlogo.png'
-import SpikeLogo from './assets/spikelogo.png'
-import Button from './Button'
-import { Profile } from './App'
+import { useEffect, useState } from "endr";
+import "./App.css";
+import JTLogo from "./assets/jtlogo.png";
+import SpikeLogo from "./assets/spikelogo.png";
+import Button from "./Button";
+import { Profile } from "./App";
 
 const ProfileTile = ({
   profile,
@@ -12,20 +12,20 @@ const ProfileTile = ({
   onClick,
   size,
 }: {
-  profile: Profile
-  index: number
-  onClick: () => void
-  itemCount: number
-  size: { width: number; height: number }
+  profile: Profile;
+  index: number;
+  onClick: () => void;
+  itemCount: number;
+  size: { width: number; height: number };
 }) => {
-  const [isPressed, setIsPressed] = useState(false)
-  const handlePointerDown = () => setIsPressed(true)
-  const handlePointerUp = () => setIsPressed(false)
+  const [isPressed, setIsPressed] = useState(false);
+  const handlePointerDown = () => setIsPressed(true);
+  const handlePointerUp = () => setIsPressed(false);
 
   return (
     <div
       className={`absolute w-[5rem] p-1 items-center justify-center ${
-        isPressed && 'w-[4.8rem]'
+        isPressed && "w-[4.8rem]"
       }`}
       style={{
         left: `calc(50% + ${
@@ -34,12 +34,12 @@ const ProfileTile = ({
         top: `calc(50% + ${
           Math.sin((2 * Math.PI * index) / itemCount) * size.height
         }px)`,
-        transform: 'translate(-50%, -50%)',
+        transform: "translate(-50%, -50%)",
       }}
     >
       <img
         className={`animate-ccw-spin rounded-xl shadow-md shadow-slate-600 ${
-          isPressed && 'shadow-sm'
+          isPressed && "shadow-sm"
         }`}
         key={profile.id}
         src={profile.imageUrl}
@@ -50,8 +50,10 @@ const ProfileTile = ({
         onPointerLeave={handlePointerUp}
       />
     </div>
-  )
-}
+  );
+};
+
+const initialRadius = 120;
 
 export default ({
   profiles,
@@ -59,91 +61,83 @@ export default ({
   setSelectedProfiles,
   setLoadThunderdome,
 }: {
-  profiles: Profile[]
-  selectedProfiles: Profile[]
-  setSelectedProfiles: (profiles: Profile[]) => void
-  setLoadThunderdome: (set: boolean) => void
+  profiles: Profile[];
+  selectedProfiles: Profile[];
+  setSelectedProfiles: (profiles: Profile[]) => void;
+  setLoadThunderdome: (set: boolean) => void;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
     height: window.innerHeight / 2,
-  })
+  });
+  const [radius, setRadius] = useState(initialRadius); // Initial radius
+  const [expanding, setExpanding] = useState(false);
 
   useEffect(() => {
     const updateSize = () => {
       setSize({
         width: window.innerHeight / 2.5,
         height: window.innerHeight / 2.5,
-      })
+      });
+    };
+    window.addEventListener("resize", updateSize);
+    updateSize();
+  }, []);
+
+  console.log("radius", radius);
+
+  useEffect(() => {
+    let interval;
+    const duration = 4500; // 4.5 seconds total duration
+    const steps = 1000;
+    const stepDuration = duration / steps;
+    const maxRadius = 800;
+    const growthFactor = Math.pow(maxRadius / radius / 2, 1.5 / steps);
+
+    if (expanding) {
+      interval = setInterval(() => {
+        setRadius((currentRadius) => {
+          const newRadius = currentRadius * growthFactor;
+          if (newRadius >= maxRadius) {
+            console.log("here!");
+            clearInterval(interval);
+            setExpanding(false);
+            return initialRadius;
+          }
+          return newRadius;
+        });
+      }, stepDuration);
     }
-    window.addEventListener('resize', updateSize)
-    updateSize()
-  }, [])
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [expanding]);
 
   const handleProfileClick = (profile: Profile) => {
     if (selectedProfiles.length < 4 && !selectedProfiles.includes(profile)) {
-      setSelectedProfiles([...selectedProfiles, profile])
+      setSelectedProfiles([...selectedProfiles, profile]);
     }
 
     if (selectedProfiles.length === 3) {
-      setTimeout(() => setLoadThunderdome(true), 4000)
+      setTimeout(() => setExpanding(true), 500);
+      setTimeout(() => setLoadThunderdome(true), 4000);
     }
-  }
+  };
 
   return (
-    <div className='flex overflow-hidden '>
+    <div className="flex overflow-hidden ">
       <div
-        className='w-1/6 p-4 bg-purple-700'
+        className="w-1/6 p-4 bg-purple-700"
         onClick={() => window.location.reload()}
       >
-        <img
-          src={SpikeLogo}
-          className='w-full'
-        />
+        <img src={SpikeLogo} className="w-full" />
       </div>
-      <div className='relative h-screen w-3/4 items-center justify-center'>
-        <div className='absolute flex w-full h-full top-0 right-0 items-center justify-center'>
-          <div
-            className={`relative flex h-24 w-24 rounded-full ${
-              selectedProfiles.length === 4 && 'animate-exp-spin'
-            }`}
-            style={{
-              backgroundImage: `url(${JTLogo})`,
-              backgroundSize: 'cover',
-            }}
-          >
-            {selectedProfiles.length > 0 && selectedProfiles.length !== 4 && (
-              <Button
-                className='absolute px-3 py-1 -bottom-2 -right-2 text-xs z-10'
-                onClick={() => setSelectedProfiles([])}
-              >
-                reset
-              </Button>
-            )}
-            {selectedProfiles.map((profile, index) => (
-              <img
-                key={profile.id}
-                src={profile.imageUrl}
-                alt={profile.name}
-                className='absolute w-18 h-18 rounded-3xl'
-                style={{
-                  left: `calc(50% + ${
-                    120 * Math.cos((2 * Math.PI * index) / 4)
-                  }px)`,
-                  top: `calc(50% + ${
-                    120 * Math.sin((2 * Math.PI * index) / 4)
-                  }px)`,
-                  transform: 'translate(-50%, -50%)',
-                  boxShadow: `${
-                    index < 2 ? '0px 0px 30px red' : '0px 0px 30px blue'
-                  }`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
 
-        <div className='flex h-screen self-center animate-cw-spin'>
+      <div className="relative h-screen w-3/4 items-center justify-center">
+        <div className="flex h-screen self-center animate-cw-spin">
           {profiles.map((profile, index) => (
             <ProfileTile
               profile={profile}
@@ -154,8 +148,49 @@ export default ({
             />
           ))}
         </div>
+
+        <div className="absolute flex w-full h-full top-0 right-0 items-center justify-center pointer-events-none">
+          <div
+            className={`relative flex h-24 w-24 rounded-full ${
+              selectedProfiles.length === 4 && "animate-exp-spin"
+            }`}
+            style={{
+              backgroundImage: `url(${JTLogo})`,
+              backgroundSize: "cover",
+            }}
+          >
+            {selectedProfiles.length > 0 && selectedProfiles.length !== 4 && (
+              <Button
+                className="absolute px-3 py-1 -bottom-2 -right-2 text-xs z-10 pointer-events-auto"
+                onClick={() => setSelectedProfiles([])}
+              >
+                reset
+              </Button>
+            )}
+            {selectedProfiles.map((profile, index) => (
+              <img
+                key={profile.id}
+                src={profile.imageUrl}
+                alt={profile.name}
+                className="absolute w-18 h-18 rounded-3xl"
+                style={{
+                  left: `calc(50% + ${
+                    radius * Math.cos((2 * Math.PI * index) / 4)
+                  }px)`,
+                  top: `calc(50% + ${
+                    radius * Math.sin((2 * Math.PI * index) / 4)
+                  }px)`,
+                  transform: "translate(-50%, -50%)",
+                  boxShadow: `${
+                    index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
+                  }`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
-      <div className='w-1/6 bg-purple-700'></div>
+      <div className="w-1/6 bg-purple-700"></div>
     </div>
-  )
-}
+  );
+};

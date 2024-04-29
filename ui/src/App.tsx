@@ -40,7 +40,13 @@ export default () => {
         setSelectedProfiles={setSelectedProfiles}
         setLoadThunderdome={setLoadThunderdome}
       />
-      {loadThunderdome && <ThunderDome selectedProfiles={selectedProfiles} />}
+      {loadThunderdome && (
+        <ThunderDome
+          selectedProfiles={selectedProfiles}
+          setLoadThunderdome={setLoadThunderdome}
+          setSelectedProfiles={setSelectedProfiles}
+        />
+      )}
     </div>
   );
 };

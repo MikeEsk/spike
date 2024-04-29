@@ -17,7 +17,7 @@ export default {
         },
         expRotate: {
           '0%': { transform: 'rotate(0deg)' },
-          '100%': { transform: 'rotate(36000deg)' }, // Rotate 100 times
+          '100%': { transform: 'rotate(18000deg)' }, // Rotate 100 times
         },
         slideInLeft: {
           'from': { transform: 'translateX(-100%)' },
@@ -26,6 +26,14 @@ export default {
         slideInRight: {
           'from': { transform: 'translateX(100%)' },
           'to': { transform: 'translateX(0)' },
+        },
+        slideOutLeft: {
+          'from': { transform: 'translateX(0)' },
+          'to': { transform: 'translateX(-100%)' },
+        },
+        slideOutRight: {
+          'from': { transform: 'translateX(0)' },
+          'to': { transform: 'translateX(100%)' },
         }
       },
       animation: {
@@ -33,7 +41,9 @@ export default {
         'ccw-spin': 'reverseRotate 180s linear infinite',
         'exp-spin': 'expRotate 6s cubic-bezier(0.1, 0.9, 0.3, 1) reverse',
         'slideInLeft': 'slideInLeft 0.5s forwards ease-out',
-        'slideInRight': 'slideInRight 0.5s forwards ease-out'
+        'slideInRight': 'slideInRight 0.5s forwards ease-out',
+        'slideOutLeft': 'slideOutLeft 0.5s forwards ease-out',
+        'slideOutRight': 'slideOutRight 0.5s forwards ease-out'
       }
     }
   },
