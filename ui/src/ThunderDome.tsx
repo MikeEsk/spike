@@ -2,6 +2,10 @@ import { useState } from "endr";
 import { Profile } from "./App";
 import Button from "./Button";
 
+import { Scores } from "./App";
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
   const [input, setInput] = useState("");
   const slideInClass =
@@ -25,18 +29,34 @@ const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
           className="text-center text-3xl p-4 bg-gray-100 w-full mb-4"
         />
         <div className="grid grid-cols-3 gap-2">
-          {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
+          {Array.from({ length: 9 }, (_, i) => i).map((num) => (
             <button
-              key={num}
+              key={num + 1}
               className="bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
-              onClick={() => setInput(input + num)}
+              onClick={() => setInput(input + (num + 1))}
             >
-              {num}
+              {num + 1}
             </button>
           ))}
         </div>
+        <div className="w-full flex justify-center py-2 space-x-2">
+          <button
+            key={0}
+            className="w-full bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
+            onClick={() => setInput(input + 0)}
+          >
+            0
+          </button>
+          <button
+            className="bg-yellow-300 text-white text-2xl p-3 rounded hover:bg-gray-700 transition"
+            onClick={() => setInput(input.slice(0, -1))}
+          >
+            ←
+          </button>
+        </div>
+
         <button
-          className="mt-4 bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
+          className="ml-2 bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
           onClick={() => onComplete({ score: input })}
         >
           Next →
@@ -51,7 +71,7 @@ const Warrior = ({ profile }: { profile: Profile }) => (
     <img
       className="h-[16rem] rounded-xl shadow-md shadow-slate-600"
       key={profile.id}
-      src={profile.imageUrl}
+      src={`${apiUrl}/profilepics/${profile.name.toLowerCase()}.jpeg`}
       alt={profile.name}
     />
   </div>
@@ -61,15 +81,17 @@ export default ({
   selectedProfiles,
   setSelectedProfiles,
   setLoadThunderdome,
+  onCompleteGame,
 }: {
   selectedProfiles: Profile[];
   setSelectedProfiles: (set: []) => void;
   setLoadThunderdome: (set: boolean) => void;
+  onCompleteGame: (scoreState: Scores) => void;
 }) => {
   const [isReversing, setIsReversing] = useState(false);
 
   const handleClose = () => {
-    setIsReversing(true); // Start reversing the animations
+    setIsReversing(true);
   };
 
   const handleAnimationEnd = () => {
@@ -80,34 +102,34 @@ export default ({
     }
   };
 
-  const [scoreState, setScoreState] = useState<{
-    winner?: { team: string; score?: string };
-    loser?: { team: string; score: string };
-  } | null>(null);
+  const [scoreState, setScoreState] = useState<Scores>(null);
 
-  const handleScoreEntry = ({ team, score }) => {
+  const handleScoreEntry = ({
+    winnerTeam,
+    loserTeam,
+    score,
+  }: {
+    winnerTeam: string[];
+    loserTeam: string[];
+    score?: number;
+  }) => {
     setScoreState((prev) => {
       if (!prev) {
-        return { winner: { team } };
+        return {
+          winner: { team: winnerTeam },
+          loser: { team: loserTeam },
+        };
       } else if (prev.winner && !prev.winner.score) {
         return {
           ...prev,
           winner: { team: prev.winner.team, score },
         };
       } else {
-        return { ...prev, loser: { team, score } };
+        onCompleteGame({ ...prev, loser: { team: prev.loser.team, score } });
+        setIsReversing(true);
+        handleAnimationEnd();
       }
     });
-
-    if (
-      scoreState &&
-      scoreState.winner &&
-      scoreState.winner.score &&
-      !scoreState.loser
-    ) {
-      setIsReversing(true);
-      handleAnimationEnd();
-    }
   };
 
   return (
@@ -118,7 +140,15 @@ export default ({
         }`}
         onAnimationEnd={handleAnimationEnd}
       >
-        <div className="p-4" onClick={() => handleScoreEntry({ team: 1 })}>
+        <div
+          className="p-4"
+          onClick={() =>
+            handleScoreEntry({
+              winnerTeam: [selectedProfiles[0].id, selectedProfiles[1].id],
+              loserTeam: [selectedProfiles[2].id, selectedProfiles[3].id],
+            })
+          }
+        >
           <h1 className="text-white text-4xl font-bold mb-4">Team 1</h1>
           <Warrior profile={selectedProfiles[0]} />
           <Warrior profile={selectedProfiles[1]} />
@@ -131,7 +161,15 @@ export default ({
         }`}
         onAnimationEnd={handleAnimationEnd}
       >
-        <div className="p-4" onClick={() => handleScoreEntry({ team: 2 })}>
+        <div
+          className="p-4"
+          onClick={() =>
+            handleScoreEntry({
+              winnerTeam: [selectedProfiles[2].id, selectedProfiles[3].id],
+              loserTeam: [selectedProfiles[0].id, selectedProfiles[1].id],
+            })
+          }
+        >
           <h1 className="text-white text-4xl font-bold mb-4">Team 2</h1>
           <Warrior profile={selectedProfiles[2]} />
           <Warrior profile={selectedProfiles[3]} />

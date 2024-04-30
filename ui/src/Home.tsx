@@ -5,6 +5,8 @@ import SpikeLogo from "./assets/spikelogo.png";
 import Button from "./Button";
 import { Profile } from "./App";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const ProfileTile = ({
   profile,
   itemCount,
@@ -42,7 +44,7 @@ const ProfileTile = ({
           isPressed && "shadow-sm"
         }`}
         key={profile.id}
-        src={profile.imageUrl}
+        src={`${apiUrl}/profilepics/${profile.name.toLowerCase()}.jpeg`}
         alt={profile.name}
         onClick={onClick}
         onPointerDown={handlePointerDown}
@@ -84,8 +86,6 @@ export default ({
     updateSize();
   }, []);
 
-  console.log("radius", radius);
-
   useEffect(() => {
     let interval;
     const duration = 4500; // 4.5 seconds total duration
@@ -99,7 +99,6 @@ export default ({
         setRadius((currentRadius) => {
           const newRadius = currentRadius * growthFactor;
           if (newRadius >= maxRadius) {
-            console.log("here!");
             clearInterval(interval);
             setExpanding(false);
             return initialRadius;
@@ -171,9 +170,9 @@ export default ({
             {selectedProfiles.map((profile, index) => (
               <img
                 key={profile.id}
-                src={profile.imageUrl}
+                src={`${apiUrl}/profilepics/${profile.name.toLowerCase()}.jpeg`}
                 alt={profile.name}
-                className="absolute w-18 h-18 rounded-3xl"
+                className="absolute w-18 h-18 rounded-3xl shadow-lg shadow-slate-600"
                 style={{
                   left: `calc(50% + ${
                     radius * Math.cos((2 * Math.PI * index) / 4)
@@ -182,9 +181,6 @@ export default ({
                     radius * Math.sin((2 * Math.PI * index) / 4)
                   }px)`,
                   transform: "translate(-50%, -50%)",
-                  boxShadow: `${
-                    index < 2 ? "0px 0px 30px red" : "0px 0px 30px blue"
-                  }`,
                 }}
               />
             ))}

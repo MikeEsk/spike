@@ -1,36 +1,78 @@
 import Home from "./Home";
-import { useState } from "endr";
+import { useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
 
 // tablet size 262 x 159 x 7.7 mm
 // Screen Resolution	800 x 1280 pixels
 
 export type Profile = {
-  id: number;
+  id: string;
   name: string;
-  imageUrl: string;
+};
+
+export type Scores = {
+  winner: { team: string[]; score?: number };
+  loser: { team: string[]; score?: number };
+} | null;
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const createGame = async ({ query }) => {
+  const response = await fetch(`${apiUrl}/pave`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+    body: JSON.stringify({ data: query }),
+  });
+
+  return response.json();
 };
 
 export default () => {
   const [loadThunderdome, setLoadThunderdome] = useState(false);
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
 
-  const profiles: Profile[] = [
-    { id: 1, name: "Casey", imageUrl: "https://picsum.photos/200?random=1" },
-    { id: 2, name: "Nate", imageUrl: "https://picsum.photos/200?random=2" },
-    { id: 3, name: "Andrew", imageUrl: "https://picsum.photos/200?random=3" },
-    { id: 4, name: "Bobby", imageUrl: "https://picsum.photos/200?random=4" },
-    { id: 5, name: "Ross", imageUrl: "https://picsum.photos/200?random=5" },
-    { id: 6, name: "Sam", imageUrl: "https://picsum.photos/200?random=6" },
-    { id: 7, name: "Travis", imageUrl: "https://picsum.photos/200?random=7" },
-    { id: 8, name: "Jared", imageUrl: "https://picsum.photos/200?random=8" },
-    { id: 9, name: "Glick", imageUrl: "https://picsum.photos/200?random=9" },
-    { id: 10, name: "Carter", imageUrl: "https://picsum.photos/200?random=10" },
-    { id: 11, name: "Jeff", imageUrl: "https://picsum.photos/200?random=11" },
-    { id: 12, name: "Zac", imageUrl: "https://picsum.photos/200?random=12" },
-    { id: 13, name: "Nolan", imageUrl: "https://picsum.photos/200?random=13" },
-    { id: 14, name: "Mike", imageUrl: "https://picsum.photos/200?random=13" },
-  ];
+  const onCompleteGame = async (scores: Scores) => {
+    if (scores) {
+      await createGame({
+        query: {
+          createGame: {
+            $: { scores },
+            games: { id: {}, winner: {}, loser: {} },
+          },
+        },
+      });
+      return true;
+    } else {
+      alert("Sumting wong");
+    }
+  };
+
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+
+  const fetchData = async () => {
+    const res = await fetch(`${apiUrl}/profiles`, {
+      method: "GET",
+    });
+    const data = await res.json();
+    setProfiles(data);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const shuffleProfiles = (profiles) => {
+    for (let i = profiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [profiles[i], profiles[j]] = [profiles[j], profiles[i]]; // ES6 destructuring swap
+    }
+    return profiles;
+  };
+
+  if (profiles.length === 0) return null;
 
   return (
     <>
@@ -42,9 +84,10 @@ export default () => {
       />
       {loadThunderdome && (
         <ThunderDome
-          selectedProfiles={selectedProfiles}
+          selectedProfiles={shuffleProfiles([...selectedProfiles])}
           setLoadThunderdome={setLoadThunderdome}
           setSelectedProfiles={setSelectedProfiles}
+          onCompleteGame={onCompleteGame}
         />
       )}
     </>
