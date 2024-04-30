@@ -44,7 +44,7 @@ const ProfileTile = ({
           isPressed && "shadow-sm"
         }`}
         key={profile.id}
-        src={`${apiUrl}/profilepics/${profile.name.toLowerCase()}.jpeg`}
+        src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
         alt={profile.name}
         onClick={onClick}
         onPointerDown={handlePointerDown}
@@ -62,11 +62,15 @@ export default ({
   selectedProfiles,
   setSelectedProfiles,
   setLoadThunderdome,
+  randomize,
+  setRandomize,
 }: {
   profiles: Profile[];
   selectedProfiles: Profile[];
   setSelectedProfiles: (profiles: Profile[]) => void;
   setLoadThunderdome: (set: boolean) => void;
+  randomize: boolean;
+  setRandomize: (set: boolean) => void;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
@@ -126,6 +130,8 @@ export default ({
     }
   };
 
+  console.log(randomize);
+
   return (
     <div className="flex overflow-hidden ">
       <div className="w-1/6 min-w-0 p-4 bg-purple-700">
@@ -170,7 +176,7 @@ export default ({
             {selectedProfiles.map((profile, index) => (
               <img
                 key={profile.id}
-                src={`${apiUrl}/profilepics/${profile.name.toLowerCase()}.jpeg`}
+                src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
                 alt={profile.name}
                 className="absolute w-18 h-18 rounded-3xl shadow-lg shadow-slate-600"
                 style={{
@@ -181,13 +187,25 @@ export default ({
                     radius * Math.sin((2 * Math.PI * index) / 4)
                   }px)`,
                   transform: "translate(-50%, -50%)",
+                  ...(!randomize && {
+                    boxShadow: `${
+                      index < 2 ? "0px 0px 30px blue" : "0px 0px 30px red"
+                    }`,
+                  }),
                 }}
               />
             ))}
           </div>
         </div>
       </div>
-      <div className="w-1/6 bg-purple-700"></div>
+      <div className="w-1/6 bg-purple-700 p-4">
+        <Button
+          onClick={() => setRandomize(!randomize)}
+          className={randomize ? "bg-green-500" : ""}
+        >
+          Random
+        </Button>
+      </div>
     </div>
   );
 };

@@ -51,9 +51,10 @@ export default () => {
   };
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [randomize, setRandomize] = useState(false);
 
   const fetchData = async () => {
-    const res = await fetch(`${apiUrl}/profiles`, {
+    const res = await fetch(`${apiUrl}/pave/profiles`, {
       method: "GET",
     });
     const data = await res.json();
@@ -81,10 +82,16 @@ export default () => {
         selectedProfiles={selectedProfiles}
         setSelectedProfiles={setSelectedProfiles}
         setLoadThunderdome={setLoadThunderdome}
+        randomize={randomize}
+        setRandomize={setRandomize}
       />
       {loadThunderdome && (
         <ThunderDome
-          selectedProfiles={shuffleProfiles([...selectedProfiles])}
+          selectedProfiles={
+            randomize
+              ? shuffleProfiles([...selectedProfiles])
+              : selectedProfiles
+          }
           setLoadThunderdome={setLoadThunderdome}
           setSelectedProfiles={setSelectedProfiles}
           onCompleteGame={onCompleteGame}
