@@ -41,5 +41,5 @@ yarn-error.log*
 package-lock.json
 **/*.bun
 
-/profilepics/*
+/pave/profilepics/*
 /games/*
