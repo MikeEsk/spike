@@ -129,11 +129,12 @@ export default ({
 
   return (
     <div className="flex overflow-hidden ">
-      <div
-        className="w-1/6 p-4 bg-purple-700"
-        onClick={() => window.location.reload()}
-      >
-        <img src={SpikeLogo} className="w-full" />
+      <div className="w-1/6 min-w-0 p-4 bg-purple-700">
+        <img
+          onClick={() => window.location.reload()}
+          src={SpikeLogo}
+          className="w-full"
+        />
       </div>
 
       <div className="relative h-screen w-3/4 items-center justify-center">
@@ -161,10 +162,10 @@ export default ({
           >
             {selectedProfiles.length > 0 && selectedProfiles.length !== 4 && (
               <Button
-                className="absolute px-3 py-1 -bottom-2 -right-2 text-xs z-10 pointer-events-auto"
+                className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl z-10 pointer-events-auto opacity-80"
                 onClick={() => setSelectedProfiles([])}
               >
-                reset
+                &times;
               </Button>
             )}
             {selectedProfiles.map((profile, index) => (

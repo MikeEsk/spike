@@ -33,7 +33,7 @@ export default () => {
   ];
 
   return (
-    <div className="relative">
+    <>
       <Home
         profiles={profiles}
         selectedProfiles={selectedProfiles}
@@ -47,6 +47,6 @@ export default () => {
           setSelectedProfiles={setSelectedProfiles}
         />
       )}
-    </div>
+    </>
   );
 };

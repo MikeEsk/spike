@@ -2,6 +2,50 @@ import { useState } from "endr";
 import { Profile } from "./App";
 import Button from "./Button";
 
+const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
+  const [input, setInput] = useState("");
+  const slideInClass =
+    slideDirection === "left" ? "animate-slideInLeft" : "animate-slideInUp";
+  const baseClass =
+    "absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50";
+
+  return (
+    <div className={`${baseClass} ${slideInClass}`}>
+      <div className="relative bg-white p-8 rounded-lg shadow-lg">
+        <button onClick={onClose} className="absolute top-2 right-2 text-3xl">
+          &times;
+        </button>
+        <h2 className="text-xl font-semibold mb-4">
+          {type === "winner" ? "Winner" : "Loser"}'s score
+        </h2>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="text-center text-3xl p-4 bg-gray-100 w-full mb-4"
+        />
+        <div className="grid grid-cols-3 gap-2">
+          {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              className="bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
+              onClick={() => setInput(input + num)}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
+        <button
+          className="mt-4 bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
+          onClick={() => onComplete({ score: input })}
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const Warrior = ({ profile }: { profile: Profile }) => (
   <div className="p-4">
     <img
@@ -46,17 +90,15 @@ export default ({
       if (!prev) {
         return { winner: { team } };
       } else if (prev.winner && !prev.winner.score) {
-        // Set the score for the winner if it has not yet been set
         return {
           ...prev,
           winner: { team: prev.winner.team, score },
         };
       } else {
-        // Now handle the loser
         return { ...prev, loser: { team, score } };
       }
     });
-    // Check if we need to initiate reversing right here
+
     if (
       scoreState &&
       scoreState.winner &&
@@ -66,24 +108,6 @@ export default ({
       setIsReversing(true);
       handleAnimationEnd();
     }
-  };
-
-  const renderOverlay = () => {
-    if (scoreState) {
-      const title = !scoreState.loser
-        ? `Team ${scoreState?.winner?.team} is the Winner!`
-        : "The Loser's Score";
-
-      return (
-        <Keypad
-          title={title}
-          onComplete={handleScoreEntry}
-          onClose={() => setScoreState(null)}
-          slideDirection={!scoreState.loser ? "bottom" : "right"}
-        />
-      );
-    }
-    return null;
   };
 
   return (
@@ -117,63 +141,19 @@ export default ({
         <Keypad
           type="winner"
           onComplete={handleScoreEntry}
-          onClose={setLoadThunderdome}
+          onClose={() => setScoreState(null)}
         />
       )}
       {scoreState?.winner?.score && (
         <Keypad
           onComplete={handleScoreEntry}
-          onClose={setLoadThunderdome}
+          onClose={() => setScoreState(null)}
           slideDirection="left"
         />
       )}
       <Button className="absolute top-2 left-2" onClick={handleClose}>
         Back
       </Button>
-    </div>
-  );
-};
-
-const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
-  const [input, setInput] = useState("");
-  const slideInClass =
-    slideDirection === "left" ? "animate-slideInLeft" : "animate-slideInUp";
-  const baseClass =
-    "absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50";
-
-  return (
-    <div className={`${baseClass} ${slideInClass}`}>
-      <div className="relative bg-white p-8 rounded-lg shadow-lg">
-        <button onClick={onClose} className="absolute top-2 right-2 text-3xl">
-          &times;
-        </button>
-        <h2 className="text-xl font-semibold mb-4">
-          {type === "winner" ? "Winner" : "Loser"}'s score
-        </h2>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="text-center text-3xl p-4 bg-gray-100 w-full mb-4"
-        />
-        <div className="grid grid-cols-3 gap-2">
-          {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
-            <button
-              key={num}
-              className="bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
-              onClick={() => setInput(input + num)}
-            >
-              {num}
-            </button>
-          ))}
-        </div>
-        <button
-          className="mt-4 bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
-          onClick={() => onComplete({ score: input })}
-        >
-          Next →
-        </button>
-      </div>
     </div>
   );
 };
