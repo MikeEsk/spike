@@ -1,5 +1,5 @@
 import Home from "./Home";
-import { useEffect, useState } from "endr";
+import { Fragment, useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
 
 // tablet size 262 x 159 x 7.7 mm
@@ -72,10 +72,10 @@ export default () => {
     return profiles;
   };
 
-  if (profiles.length === 0) return null;
+  if (profiles.length === 0) return <h1>...Loading</h1>;
 
   return (
-    <>
+    <Fragment>
       <Home
         profiles={profiles}
         selectedProfiles={selectedProfiles}
@@ -90,6 +90,6 @@ export default () => {
           onCompleteGame={onCompleteGame}
         />
       )}
-    </>
+    </Fragment>
   );
 };

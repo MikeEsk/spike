@@ -64,8 +64,9 @@ Bun.serve({
     }
 
     const url = new URL(request.url);
+    const baseUrl = "/pave";
 
-    if (url.pathname.startsWith("/profilepics")) {
+    if (url.pathname.startsWith(`${baseUrl}/profilepics`)) {
       try {
         const path = `.${url.pathname}`;
 
@@ -79,7 +80,7 @@ Bun.serve({
       }
     }
 
-    if (url.pathname.startsWith("/profiles")) {
+    if (url.pathname.startsWith(`${baseUrl}/profiles`)) {
       try {
         return new Response(JSON.stringify(profiles), {
           headers: {
@@ -92,7 +93,7 @@ Bun.serve({
       }
     }
 
-    if (url.pathname.startsWith("/pave")) {
+    if (url.pathname.startsWith(`${baseUrl}`)) {
       try {
         const data = await createGame(request);
         return new Response(JSON.stringify(data), {
