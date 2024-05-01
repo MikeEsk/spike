@@ -130,8 +130,6 @@ export default ({
     }
   };
 
-  console.log(randomize);
-
   return (
     <div className="flex overflow-hidden ">
       <div className="w-1/6 min-w-0 p-4 bg-purple-700">

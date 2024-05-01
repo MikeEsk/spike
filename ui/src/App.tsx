@@ -34,7 +34,18 @@ export default () => {
   const [loadThunderdome, setLoadThunderdome] = useState(false);
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
 
-  const onCompleteGame = async (scores: Scores) => {
+  const onClose = () => {
+    setLoadThunderdome(false);
+    setSelectedProfiles([]);
+  };
+
+  const onCompleteGame = async ({
+    scores,
+    rematch = false,
+  }: {
+    scores: Scores;
+    rematch: boolean;
+  }) => {
     if (scores) {
       await createGame({
         query: {
@@ -44,7 +55,14 @@ export default () => {
           },
         },
       });
-      return true;
+
+      if (rematch) {
+        setRandomize(false);
+        setLoadThunderdome(true);
+      } else {
+        setSelectedProfiles([]);
+        setLoadThunderdome(false);
+      }
     } else {
       alert("Sumting wong");
     }
@@ -92,8 +110,7 @@ export default () => {
               ? shuffleProfiles([...selectedProfiles])
               : selectedProfiles
           }
-          setLoadThunderdome={setLoadThunderdome}
-          setSelectedProfiles={setSelectedProfiles}
+          onClose={onClose}
           onCompleteGame={onCompleteGame}
         />
       )}

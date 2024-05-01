@@ -54,13 +54,25 @@ const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
             ←
           </button>
         </div>
+        <div className="flex space-x-2.5">
+          {!type && (
+            <button
+              className=" bg-orange-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
+              onClick={() =>
+                input && onComplete({ score: input, rematch: true })
+              }
+            >
+              Complete & Rematch ♻️
+            </button>
+          )}
 
-        <button
-          className="ml-2 bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
-          onClick={() => onComplete({ score: input })}
-        >
-          Next →
-        </button>
+          <button
+            className=" bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
+            onClick={() => input && onComplete({ score: input })}
+          >
+            {!type ? "Complete" : "Next →"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -79,28 +91,22 @@ const Warrior = ({ profile }: { profile: Profile }) => (
 
 export default ({
   selectedProfiles,
-  setSelectedProfiles,
-  setLoadThunderdome,
   onCompleteGame,
+  onClose,
 }: {
   selectedProfiles: Profile[];
-  setSelectedProfiles: (set: []) => void;
-  setLoadThunderdome: (set: boolean) => void;
-  onCompleteGame: (scoreState: Scores) => void;
+  onClose: () => void;
+  onCompleteGame: ({
+    scores,
+    rematch,
+  }: {
+    scores: Scores;
+    rematch: boolean;
+  }) => void;
 }) => {
   const [isReversing, setIsReversing] = useState(false);
 
-  const handleClose = () => {
-    setIsReversing(true);
-  };
-
-  const handleAnimationEnd = () => {
-    if (isReversing) {
-      setLoadThunderdome(false);
-      setSelectedProfiles([]);
-      setIsReversing(false);
-    }
-  };
+  const handleAnimationEnd = () => isReversing && setIsReversing(false);
 
   const [scoreState, setScoreState] = useState<Scores>(null);
 
@@ -108,10 +114,12 @@ export default ({
     winnerTeam,
     loserTeam,
     score,
+    rematch,
   }: {
     winnerTeam: string[];
     loserTeam: string[];
     score?: number;
+    rematch: boolean;
   }) => {
     setScoreState((prev) => {
       if (!prev) {
@@ -125,9 +133,14 @@ export default ({
           winner: { team: prev.winner.team, score },
         };
       } else {
-        onCompleteGame({ ...prev, loser: { team: prev.loser.team, score } });
-        setIsReversing(true);
-        handleAnimationEnd();
+        onCompleteGame({
+          scores: { ...prev, loser: { team: prev.loser.team, score } },
+          rematch,
+        });
+        if (!rematch) {
+          setIsReversing(true);
+          handleAnimationEnd();
+        }
       }
     });
   };
@@ -189,7 +202,7 @@ export default ({
           slideDirection="left"
         />
       )}
-      <Button className="absolute top-2 left-2" onClick={handleClose}>
+      <Button className="absolute top-2 left-2" onClick={onClose}>
         Back
       </Button>
     </div>
