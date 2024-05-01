@@ -23,7 +23,8 @@ const gamesPath = "games/log.txt";
 const createGame = async (request: Request) => {
   try {
     const res = await request.json();
-    const stringData = JSON.stringify(res.data.createGame.$.scores) + "\n";
+    const scores = res?.data.createGame.$.scores;
+    const stringData = JSON.stringify(scores) + "\n";
 
     const file = Bun.file(gamesPath);
     if (!file) {
@@ -32,6 +33,37 @@ const createGame = async (request: Request) => {
       const text = await file.text();
       Bun.write(gamesPath, text + stringData);
     }
+
+    const winnerTeam1 = profiles.find((p) => p.id === scores.winner.team[0]);
+    const winnerTeam2 = profiles.find((p) => p.id === scores.winner.team[1]);
+    const loserTeam1 = profiles.find((p) => p.id === scores.loser.team[0]);
+    const loserTeam2 = profiles.find((p) => p.id === scores.loser.team[1]);
+    const scoreText = `*WE 🙂 WIN \`${scores.winner.score}-${scores.loser.score}\`* \n${winnerTeam1?.name} & ${winnerTeam2?.name} defeated ${loserTeam1?.name} & ${loserTeam2?.name}`;
+
+    const slackMessage = {
+      attachments: [
+        {
+          color: "#fec831",
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: scoreText,
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const webhookUrl = process.env.SLACK_HOOK_URL;
+    if (webhookUrl)
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(slackMessage),
+      });
 
     return res.data.createGame.$.scores;
   } catch (error) {
