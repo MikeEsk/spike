@@ -42,6 +42,7 @@ const createGame = async (request: Request) => {
 
     const slackMessage = {
       text: `${winnerTeam1}/${winnerTeam2} defeated ${loserTeam1}/${loserTeam2}`,
+      blocks: [{ type: "section", text: { type: "plain_text", text: " " } }],
       attachments: [
         {
           color: "#fec831",
