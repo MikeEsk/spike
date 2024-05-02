@@ -38,23 +38,18 @@ const createGame = async (request: Request) => {
     const winnerTeam2 = profiles.find((p) => p.id === scores.winner.team[1]);
     const loserTeam1 = profiles.find((p) => p.id === scores.loser.team[0]);
     const loserTeam2 = profiles.find((p) => p.id === scores.loser.team[1]);
-    const scoreText = `*WE 🙂 WIN \`${scores.winner.score}-${scores.loser.score}\`* \n${winnerTeam1?.name} & ${winnerTeam2?.name} defeated ${loserTeam1?.name} & ${loserTeam2?.name}`;
+    const subject = `${winnerTeam1?.name} & ${winnerTeam2?.name} defeated ${loserTeam1?.name} & ${loserTeam2?.name}`;
+    const scoreText = `*WE 🙂 WIN \`${scores.winner.score}-${scores.loser.score}\`*\n${subject}`;
 
     const slackMessage = {
-      text: `${winnerTeam1}/${winnerTeam2} defeated ${loserTeam1}/${loserTeam2}`,
-      blocks: [{ type: "section", text: { type: "plain_text", text: " " } }],
-      attachments: [
+      text: subject,
+      blocks: [
         {
-          color: "#fec831",
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: scoreText,
-              },
-            },
-          ],
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: scoreText,
+          },
         },
       ],
     };
