@@ -3,7 +3,7 @@ import "./App.css";
 import JTLogo from "./assets/jtlogo.png";
 import SpikeLogo from "./assets/spikelogo.png";
 import Button from "./Button";
-import { Profile } from "./App";
+import { GameState, Profile } from "./App";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -58,19 +58,17 @@ const ProfileTile = ({
 const initialRadius = 120;
 
 export default ({
-  profiles,
-  selectedProfiles,
-  setSelectedProfiles,
-  setLoadThunderdome,
-  randomize,
-  setRandomize,
+  state,
+  addProfile,
+  startThunderDome,
+  onRandomize,
+  onClearProfiles,
 }: {
-  profiles: Profile[];
-  selectedProfiles: Profile[];
-  setSelectedProfiles: (profiles: Profile[]) => void;
-  setLoadThunderdome: (set: boolean) => void;
-  randomize: boolean;
-  setRandomize: (set: boolean) => void;
+  state: GameState;
+  addProfile: ({ profile }: { profile: Profile }) => void;
+  startThunderDome: () => void;
+  onRandomize: () => void;
+  onClearProfiles: () => void;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
@@ -120,13 +118,16 @@ export default ({
   }, [expanding]);
 
   const handleProfileClick = (profile: Profile) => {
-    if (selectedProfiles.length < 4 && !selectedProfiles.includes(profile)) {
-      setSelectedProfiles([...selectedProfiles, profile]);
+    if (
+      state.selectedProfiles.length < 4 &&
+      !state.selectedProfiles.includes(profile)
+    ) {
+      addProfile({ profile });
     }
 
-    if (selectedProfiles.length === 3) {
+    if (state.selectedProfiles.length === 3) {
       setTimeout(() => setExpanding(true), 500);
-      setTimeout(() => setLoadThunderdome(true), 4000);
+      setTimeout(() => startThunderDome(), 4000);
     }
   };
 
@@ -142,10 +143,10 @@ export default ({
 
       <div className="relative h-screen w-3/4 items-center justify-center">
         <div className="flex h-screen self-center animate-cw-spin">
-          {profiles.map((profile, index) => (
+          {state.profiles.map((profile, index) => (
             <ProfileTile
               profile={profile}
-              itemCount={profiles.length}
+              itemCount={state.profiles.length}
               index={index}
               onClick={() => handleProfileClick(profile)}
               size={size}
@@ -156,22 +157,23 @@ export default ({
         <div className="absolute flex w-full h-full top-0 right-0 items-center justify-center pointer-events-none">
           <div
             className={`relative flex h-24 w-24 rounded-full ${
-              selectedProfiles.length === 4 && "animate-exp-spin"
+              state.selectedProfiles.length === 4 && "animate-exp-spin"
             }`}
             style={{
               backgroundImage: `url(${JTLogo})`,
               backgroundSize: "cover",
             }}
           >
-            {selectedProfiles.length > 0 && selectedProfiles.length !== 4 && (
-              <Button
-                className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl z-10 pointer-events-auto opacity-80"
-                onClick={() => setSelectedProfiles([])}
-              >
-                &times;
-              </Button>
-            )}
-            {selectedProfiles.map((profile, index) => (
+            {state.selectedProfiles.length > 0 &&
+              state.selectedProfiles.length !== 4 && (
+                <Button
+                  className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl z-10 pointer-events-auto opacity-80"
+                  onClick={onClearProfiles}
+                >
+                  &times;
+                </Button>
+              )}
+            {state.selectedProfiles.map((profile, index) => (
               <img
                 key={profile.id}
                 src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
@@ -185,7 +187,7 @@ export default ({
                     radius * Math.sin((2 * Math.PI * index) / 4)
                   }px)`,
                   transform: "translate(-50%, -50%)",
-                  ...(!randomize && {
+                  ...(!state.isRandom && {
                     boxShadow: `${
                       index < 2 ? "0px 0px 30px blue" : "0px 0px 30px red"
                     }`,
@@ -198,8 +200,8 @@ export default ({
       </div>
       <div className="w-1/6 bg-purple-700 p-4">
         <Button
-          onClick={() => setRandomize(!randomize)}
-          className={randomize ? "bg-green-500" : ""}
+          onClick={onRandomize}
+          className={state.isRandom ? "bg-green-500" : ""}
         >
           Random
         </Button>

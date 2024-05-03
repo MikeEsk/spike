@@ -2,9 +2,6 @@ import Home from "./Home";
 import { Fragment, useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
 
-// tablet size 262 x 159 x 7.7 mm
-// Screen Resolution	800 x 1280 pixels
-
 export type Profile = {
   id: string;
   name: string;
@@ -30,22 +27,31 @@ const createGame = async ({ query }) => {
   return response.json();
 };
 
+export type GameState = {
+  selectedProfiles: Profile[];
+  profiles: Profile[];
+  loadGame: boolean;
+  isRandom: boolean;
+};
+
 export default () => {
-  const [loadThunderdome, setLoadThunderdome] = useState(false);
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [state, setState] = useState<GameState>({
+    selectedProfiles: [],
+    profiles: [],
+    loadGame: false,
+    isRandom: false,
+  });
 
   const onClose = () => {
-    setLoadThunderdome(false);
-    setSelectedProfiles([]);
+    setState((prev) => ({
+      ...prev,
+      selectedProfiles: [],
+      loadGame: false,
+      isRandom: false,
+    }));
   };
 
-  const onCompleteGame = async ({
-    scores,
-    rematch = false,
-  }: {
-    scores: Scores;
-    rematch: boolean;
-  }) => {
+  const onCompleteGame = async ({ scores, rematch = false }) => {
     if (scores) {
       await createGame({
         query: {
@@ -57,26 +63,28 @@ export default () => {
       });
 
       if (rematch) {
-        setRandomize(false);
-        setLoadThunderdome(true);
+        setState((prev) => ({
+          ...prev,
+          isRandom: false,
+        }));
       } else {
-        setSelectedProfiles([]);
-        setLoadThunderdome(false);
+        setState((prev) => ({
+          ...prev,
+          selectedProfiles: [],
+          loadGame: false,
+        }));
       }
     } else {
-      alert("Sumting wong");
+      alert("Something went wrong");
     }
   };
-
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [randomize, setRandomize] = useState(false);
 
   const fetchData = async () => {
     const res = await fetch(`${apiUrl}/pave/profiles`, {
       method: "GET",
     });
     const data = await res.json();
-    setProfiles(data);
+    setState((prev) => ({ ...prev, profiles: data }));
   };
 
   useEffect(() => {
@@ -91,25 +99,37 @@ export default () => {
     return profiles;
   };
 
-  if (profiles.length === 0) return <h1>...Loading</h1>;
+  if (state.profiles.length === 0) return <h1>...Loading</h1>;
 
   return (
     <Fragment>
       <Home
-        profiles={profiles}
-        selectedProfiles={selectedProfiles}
-        setSelectedProfiles={setSelectedProfiles}
-        setLoadThunderdome={setLoadThunderdome}
-        randomize={randomize}
-        setRandomize={setRandomize}
+        state={state}
+        addProfile={({ profile }) =>
+          setState((prev) => ({
+            ...prev,
+            selectedProfiles: [...state.selectedProfiles, profile],
+          }))
+        }
+        startThunderDome={() =>
+          setState((prev) => ({
+            ...prev,
+            selectedProfiles: state.isRandom
+              ? shuffleProfiles([...prev.selectedProfiles])
+              : [...prev.selectedProfiles],
+            loadGame: true,
+          }))
+        }
+        onRandomize={() =>
+          setState((prev) => ({ ...prev, isRandom: !prev.isRandom }))
+        }
+        onClearProfiles={() =>
+          setState((prev) => ({ ...prev, selectedProfiles: [] }))
+        }
       />
-      {loadThunderdome && (
+      {state.loadGame && (
         <ThunderDome
-          selectedProfiles={
-            randomize
-              ? shuffleProfiles([...selectedProfiles])
-              : selectedProfiles
-          }
+          selectedProfiles={state.selectedProfiles}
           onClose={onClose}
           onCompleteGame={onCompleteGame}
         />
