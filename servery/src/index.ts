@@ -1,3 +1,9 @@
+import {
+  calculateAllPlayerStats,
+  calculateTeamStats,
+  aggregateStats,
+} from "./functions";
+
 const profiles: { id: number; name: string }[] = [
   { id: 1, name: "Casey" },
   { id: 2, name: "Nate" },
@@ -79,8 +85,9 @@ const createGame = async (request: Request) => {
   }
 };
 
+const PORT = 3048;
 Bun.serve({
-  port: 3048,
+  port: PORT,
   fetch: async (request) => {
     // Handle OPTIONS method for CORS preflight
     const headers = new Headers({
@@ -124,6 +131,36 @@ Bun.serve({
       }
     }
 
+    if (url.pathname === `${baseUrl}/stats`) {
+      try {
+        const filePath = new URL("../games/log.txt", import.meta.url).pathname;
+        const rawGames = await Bun.file(filePath).text();
+
+        const games = rawGames
+          .split("\n")
+          .flatMap((game) => (game ? JSON.parse(game) : []));
+        const playerStats = calculateAllPlayerStats(profiles, games);
+        const teamStats = calculateTeamStats(games);
+        const aggregate = aggregateStats(games);
+
+        return new Response(
+          JSON.stringify({
+            playerStats,
+            teamStats,
+            aggregate,
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     if (url.pathname.startsWith(`${baseUrl}`)) {
       try {
         const data = await createGame(request);
@@ -146,4 +183,4 @@ Bun.serve({
   },
 });
 
-console.log("Bun server running...");
+console.log(`Bun server running on port${PORT}...`);
