@@ -47,12 +47,17 @@ const getLossesByTeamId = (teamId: number[], games: Game[]): number => {
 const averageScorePerPlayer = (playerId: number, games: Game[]): number => {
   let totalScore = 0;
   let gameCount = 0;
+
   games.forEach((game) => {
     if (game.winner.team.includes(playerId)) {
       totalScore += parseInt(game.winner.score);
       gameCount++;
+    } else if (game.loser.team.includes(playerId)) {
+      totalScore += parseInt(game.loser.score);
+      gameCount++;
     }
   });
+
   return gameCount > 0 ? totalScore / gameCount : 0;
 };
 
