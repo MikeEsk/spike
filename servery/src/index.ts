@@ -23,6 +23,7 @@ const profiles: { id: number; name: string }[] = [
   { id: 16, name: "Michael" },
   { id: 17, name: "Hector" },
   { id: 18, name: "Madison" },
+  { id: 19, name: "Chris" },
 ];
 
 const gamesPath = "games/log.txt";
