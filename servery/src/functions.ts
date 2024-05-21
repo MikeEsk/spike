@@ -102,7 +102,10 @@ const biggestWinMargin = (
   );
 };
 
-const calculateWinningStreaks = (teamId: number[], games: Game[]): number => {
+const calculateWinningStreaks = (
+  teamId: number[],
+  games: Game[]
+): { currentStreak: number; longestStreak: number } => {
   let longestStreak = 0;
   let currentStreak = 0;
   games.forEach((game) => {
@@ -113,7 +116,7 @@ const calculateWinningStreaks = (teamId: number[], games: Game[]): number => {
       currentStreak = 0;
     }
   });
-  return longestStreak;
+  return { currentStreak, longestStreak };
 };
 
 const extractUniqueTeams = (games: Game[]) => {
@@ -175,7 +178,7 @@ const aggregateStats = (games: Game[]) => {
   const uniqueTeams = extractUniqueTeams(games);
   const winningStreaks = uniqueTeams.map((team) => ({
     team,
-    streak: calculateWinningStreaks(team, games),
+    ...calculateWinningStreaks(team, games),
   }));
   const teamStats = calculateTeamStats(games);
 
