@@ -108,14 +108,23 @@ const calculateWinningStreaks = (
 ): { currentStreak: number; longestStreak: number } => {
   let longestStreak = 0;
   let currentStreak = 0;
+
+  const normalizedTeamId = teamId.sort((a, b) => a - b).join("-");
+
   games.forEach((game) => {
-    if (teamId.every((id) => game.winner.team.includes(id))) {
+    const normalizedWinnerTeam = game.winner.team
+      .sort((a, b) => a - b)
+      .join("-");
+    const normalizedLoserTeam = game.loser.team.sort((a, b) => a - b).join("-");
+
+    if (normalizedTeamId === normalizedWinnerTeam) {
       currentStreak++;
       longestStreak = Math.max(longestStreak, currentStreak);
-    } else {
+    } else if (normalizedTeamId === normalizedLoserTeam) {
       currentStreak = 0;
     }
   });
+
   return { currentStreak, longestStreak };
 };
 
