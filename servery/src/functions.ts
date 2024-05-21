@@ -119,8 +119,14 @@ const calculateWinningStreaks = (teamId: number[], games: Game[]): number => {
 const extractUniqueTeams = (games: Game[]) => {
   const teams = new Set();
   games.forEach((game) => {
-    const winnerTeam = game.winner.team.sort().join("-");
-    const loserTeam = game.loser.team.sort().join("-");
+    const winnerTeam = game.winner.team
+      .map(Number)
+      .sort((a, b) => a - b)
+      .join("-");
+    const loserTeam = game.loser.team
+      .map(Number)
+      .sort((a, b) => a - b)
+      .join("-");
     teams.add(winnerTeam);
     teams.add(loserTeam);
   });
