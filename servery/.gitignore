@@ -42,4 +42,5 @@ package-lock.json
 **/*.bun
 
 /pave/profilepics/*
+/pave/playeraudio/*
 /games/*

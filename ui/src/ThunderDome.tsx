@@ -83,7 +83,7 @@ const Warrior = ({ profile }: { profile: Profile }) => (
     <img
       className="h-[16rem] rounded-xl shadow-md shadow-slate-600"
       key={profile.id}
-      src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
+      src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
       alt={profile.name}
     />
   </div>

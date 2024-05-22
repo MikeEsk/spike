@@ -107,7 +107,7 @@ Bun.serve({
 
     if (url.pathname.startsWith(`${baseUrl}/profilepics`)) {
       try {
-        const path = `.${url.pathname}`;
+        const path = `.${url.pathname}.jpeg`;
 
         return new Response(Bun.file(path), {
           headers: {
@@ -116,6 +116,25 @@ Bun.serve({
         });
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    if (url.pathname.startsWith(`${baseUrl}/playeraudio/`)) {
+      try {
+        const path = `.${url.pathname}.mp3`;
+
+        // Serve the audio file
+        return new Response(Bun.file(path), {
+          headers: {
+            "Content-Type": "audio/mpeg", // Correct MIME type for MP3 files
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        return new Response("File not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
     }
 

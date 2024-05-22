@@ -1,6 +1,7 @@
 import { useEffect, useState } from "endr";
 import "./App.css";
 import JTLogo from "./assets/jtlogo.png";
+import Bell from "./assets/bell.mp3";
 import SpikeLogo from "./assets/spikelogo.png";
 import Button from "./Button";
 import { GameState, Profile } from "./App";
@@ -44,7 +45,7 @@ const ProfileTile = ({
           isPressed && "shadow-sm"
         }`}
         key={profile.id}
-        src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
+        src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
         alt={profile.name}
         onClick={onClick}
         onPointerDown={handlePointerDown}
@@ -117,7 +118,7 @@ export default ({
     };
   }, [expanding]);
 
-  const handleProfileClick = (profile: Profile) => {
+  const handleProfileClick = async (profile: Profile) => {
     if (
       state.selectedProfiles.length < 4 &&
       !state.selectedProfiles.includes(profile)
@@ -125,9 +126,18 @@ export default ({
       addProfile({ profile });
     }
 
+    const audio = new Audio(
+      `${apiUrl}/pave/playeraudio/${profile.name.toLowerCase()}`
+    );
+    audio.play();
+
     if (state.selectedProfiles.length === 3) {
       setTimeout(() => setExpanding(true), 500);
-      setTimeout(() => startThunderDome(), 4000);
+      setTimeout(() => {
+        const audio = new Audio(Bell);
+        audio.play();
+        startThunderDome();
+      }, 4000);
     }
   };
 
@@ -176,7 +186,7 @@ export default ({
             {state.selectedProfiles.map((profile, index) => (
               <img
                 key={profile.id}
-                src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}.jpeg`}
+                src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
                 alt={profile.name}
                 className="absolute w-18 h-18 rounded-3xl shadow-lg shadow-slate-600"
                 style={{
