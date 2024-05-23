@@ -94,29 +94,40 @@ const getBiggestWinMarginInSeries = (
   for (let i = 0; i <= games.length - seriesLength; i++) {
     const series = games.slice(i, i + seriesLength);
 
-    // Check if the current winning team has won at least 2 games in the series
-    let winCounts: { [key: string]: number } = {};
-    const teamIdsToString = (teamIds: number[]) =>
-      teamIds.sort((a, b) => a - b).join("-");
-
+    // Create a set of unique matchups in the series
+    const matchups = new Set();
     series.forEach((game) => {
-      const winningTeam = teamIdsToString(game.winner.team);
-      winCounts[winningTeam] = (winCounts[winningTeam] || 0) + 1;
+      const teams = [...game.winner.team, ...game.loser.team]
+        .sort((a, b) => a - b)
+        .join("-");
+      matchups.add(teams);
     });
 
-    const hasTwoWins = Object.values(winCounts).some((count) => count >= 2);
+    // Continue only if there is exactly one unique matchup in the series
+    if (matchups.size === 1) {
+      let winCounts: { [key: string]: number } = {};
+      const teamIdsToString = (teamIds: number[]) =>
+        teamIds.sort((a, b) => a - b).join("-");
 
-    if (hasTwoWins) {
-      const margin = series.reduce((acc, game) => {
-        return (
-          acc +
-          Math.abs(parseInt(game.winner.score) - parseInt(game.loser.score))
-        );
-      }, 0);
+      series.forEach((game) => {
+        const winningTeam = teamIdsToString(game.winner.team);
+        winCounts[winningTeam] = (winCounts[winningTeam] || 0) + 1;
+      });
 
-      if (margin > maxMargin) {
-        maxMargin = margin;
-        maxMarginSeries = series;
+      const hasTwoWins = Object.values(winCounts).some((count) => count >= 2);
+
+      if (hasTwoWins) {
+        const margin = series.reduce((acc, game) => {
+          return (
+            acc +
+            Math.abs(parseInt(game.winner.score) - parseInt(game.loser.score))
+          );
+        }, 0);
+
+        if (margin > maxMargin) {
+          maxMargin = margin;
+          maxMarginSeries = series;
+        }
       }
     }
   }
@@ -126,43 +137,28 @@ const getBiggestWinMarginInSeries = (
 
 const calculateStreak = (
   ids: number[], // Can be a teamId or a playerId wrapped in an array
-  games: Game[],
-  isLosingStreak: boolean = false
+  games: Game[]
 ): { currentStreak: number; longestStreak: number } => {
   let longestStreak = 0;
   let currentStreak = 0;
-  let tempStreak = 0; // Temporary streak counter
 
   games.forEach((game) => {
     let isWin = false;
     let isLoss = false;
 
-    if (ids.length === 1) {
-      // Single player ID case
-      const playerId = ids[0];
-      isWin = game.winner.team.includes(playerId);
-      isLoss = game.loser.team.includes(playerId);
-    } else {
-      // Team ID array case
-      isWin =
-        ids.every((id) => game.winner.team.includes(id)) &&
-        ids.length === game.winner.team.length;
-      isLoss =
-        ids.every((id) => game.loser.team.includes(id)) &&
-        ids.length === game.loser.team.length;
+    if (
+      (ids.length === 1 && game.winner.team.includes(ids[0])) ||
+      ids.every((id) => game.winner.team.includes(id))
+    ) {
+      currentStreak++;
+    } else if (
+      (ids.length === 1 && game.loser.team.includes(ids[0])) ||
+      ids.every((id) => game.loser.team.includes(id))
+    ) {
+      currentStreak = 0;
     }
-
-    if (isLosingStreak ? isLoss : isWin) {
-      tempStreak++;
-      currentStreak = tempStreak; // Update current streak as we go
-    } else {
-      longestStreak = Math.max(longestStreak, tempStreak);
-      tempStreak = 0; // Reset temporary streak counter
-    }
+    longestStreak = Math.max(longestStreak, currentStreak);
   });
-
-  // After iterating through all games, check if the last game continued the streak
-  longestStreak = Math.max(longestStreak, tempStreak);
 
   return { currentStreak, longestStreak };
 };
@@ -361,12 +357,6 @@ const aggregateStats = (games: Game[]) => {
     }))
     .sort((a, b) => b.currentStreak - a.currentStreak);
 
-  const lossStreaks = uniqueTeams
-    .map((team) => ({
-      team,
-      ...calculateStreak(team, games, true),
-    }))
-    .sort((a, b) => b.currentStreak - a.currentStreak);
   const teamStats = calculateTeamStats(games);
 
   const mostImprovedPlayer = calculatePlayerChange(
@@ -389,7 +379,6 @@ const aggregateStats = (games: Game[]) => {
     biggestWinMarginInSeries,
     highestScoringGame,
     winningStreaks,
-    lossStreaks,
     teamStats,
     mostImprovedPlayer,
     mostWorsenedPlayer,
