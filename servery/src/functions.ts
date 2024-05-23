@@ -44,7 +44,7 @@ const getLossesByTeamId = (teamId: number[], games: Game[]): number => {
   }, 0);
 };
 
-const averageScorePerPlayer = (playerId: number, games: Game[]): number => {
+const pointsPerGamePerPlayer = (playerId: number, games: Game[]): number => {
   let totalScore = 0;
   let gameCount = 0;
 
@@ -61,7 +61,7 @@ const averageScorePerPlayer = (playerId: number, games: Game[]): number => {
   return gameCount > 0 ? totalScore / gameCount : 0;
 };
 
-const averageScorePerTeam = (teamId: number[], games: Game[]): number => {
+const pointsPerGamePerTeam = (teamId: number[], games: Game[]): number => {
   let totalScore = 0;
   let gameCount = 0;
   games.forEach((game) => {
@@ -102,9 +102,10 @@ const biggestWinMargin = (
   );
 };
 
-const calculateWinningStreaks = (
+const calculateStreak = (
   teamId: number[],
-  games: Game[]
+  games: Game[],
+  isLosingStreak: boolean = false
 ): { currentStreak: number; longestStreak: number } => {
   let longestStreak = 0;
   let currentStreak = 0;
@@ -117,11 +118,20 @@ const calculateWinningStreaks = (
       .join("-");
     const normalizedLoserTeam = game.loser.team.sort((a, b) => a - b).join("-");
 
-    if (normalizedTeamId === normalizedWinnerTeam) {
-      currentStreak++;
-      longestStreak = Math.max(longestStreak, currentStreak);
-    } else if (normalizedTeamId === normalizedLoserTeam) {
-      currentStreak = 0;
+    if (isLosingStreak) {
+      if (normalizedTeamId === normalizedLoserTeam) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
+    } else {
+      if (normalizedTeamId === normalizedWinnerTeam) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
     }
   });
 
@@ -152,13 +162,19 @@ const calculateTeamStats = (games: Game[]) => {
   return uniqueTeams.map((team) => {
     const wins = getWinsByTeamId(team, games);
     const losses = getLossesByTeamId(team, games);
-    const averageScore = averageScorePerTeam(team, games);
+    const pointsPerGame = pointsPerGamePerTeam(team, games);
 
     return {
       team: team,
       wins: wins,
       losses: losses,
-      averageScore: averageScore,
+      winPercentage:
+        wins + losses > 0
+          ? `${Math.round((wins / (wins + losses)) * 100)}%`
+          : "0%",
+      pointsPerGame,
+      currentStreak: calculateStreak(team, games).currentStreak,
+      longestStreak: calculateStreak(team, games).longestStreak,
     };
   });
 };
@@ -170,31 +186,175 @@ const calculateAllPlayerStats = (
   return profiles.map((profile) => {
     const wins = getWinsByPlayerId(profile.id, games);
     const losses = getLossesByPlayerId(profile.id, games);
-    const averageScore = averageScorePerPlayer(profile.id, games);
+    const pointsPerGame = pointsPerGamePerPlayer(profile.id, games);
 
     return {
       id: profile.id,
       name: profile.name,
       wins: wins,
       losses: losses,
-      averageScore: averageScore,
+      winPercentage:
+        wins + losses > 0
+          ? `${Math.round((wins / (wins + losses)) * 100)}%`
+          : "0%",
+      pointsPerGame: pointsPerGame,
+      currentStreak: calculateStreak([profile.id], games).currentStreak,
+      longestStreak: calculateStreak([profile.id], games).longestStreak,
     };
   });
 };
 
+const getHighestScoringGame = (games: Game[]): Game => {
+  return games.reduce((prev, current) => {
+    const prevTotal = +prev.winner.score + +prev.loser.score;
+    const currentTotal = +current.winner.score + +current.loser.score;
+    return prevTotal > currentTotal ? prev : current;
+  });
+};
+
+const calculatePlayerChange = (
+  profiles: number[],
+  games: Game[],
+  type: "improvement" | "worsening" = "improvement"
+) => {
+  return profiles
+    .map((profile) => {
+      const playerGames = games.filter(
+        (game) =>
+          game.winner.team.includes(profile) ||
+          game.loser.team.includes(profile)
+      );
+      const recentGames = playerGames.slice(-10).reverse();
+      const halfPoint = Math.ceil(recentGames.length / 2);
+      const firstHalf = recentGames.slice(0, halfPoint);
+      const secondHalf = recentGames.slice(halfPoint);
+      const firstWinPercentage = calculateWinPercentage(firstHalf, profile);
+      const secondWinPercentage = calculateWinPercentage(secondHalf, profile);
+
+      const change = secondWinPercentage - firstWinPercentage;
+      return {
+        profile,
+        change,
+        improvement: change > 0 ? change : 0,
+        worsening: change < 0 ? -change : 0,
+      };
+    })
+    .sort((a, b) =>
+      type === "improvement"
+        ? b.improvement - a.improvement
+        : b.worsening - a.worsening
+    )[0];
+};
+
+const calculateBestRevengeMatch = (games: Game[]) => {
+  let bestRevengeGame = null;
+  let previousLossGame = null;
+  let maxPointDifference = 0;
+  games.forEach((game, index) => {
+    const previousLoss = games
+      .slice(0, index)
+      .reverse()
+      .find(
+        (g) =>
+          g.loser.team.includes(game.winner.team[0]) &&
+          g.winner.team.includes(game.loser.team[0])
+      );
+    if (previousLoss) {
+      const pointDifference = +game.winner.score - +previousLoss.loser.score;
+      if (pointDifference > maxPointDifference) {
+        maxPointDifference = pointDifference;
+        bestRevengeGame = game;
+        previousLossGame = previousLoss;
+      }
+    }
+  });
+  return { bestRevengeGame, previousLossGame };
+};
+
+const calculateZeroScoreDefeats = (profiles: number[], games: Game[]) => {
+  const results = profiles.map((profile) => {
+    console.log("profile", profile);
+    const zeroScoreGames = games.filter(
+      (game) => game.loser.team.includes(profile) && +game.loser.score === 0
+    );
+    return {
+      profile,
+      zeroScoreDefeats: zeroScoreGames.length,
+    };
+  });
+
+  return results.sort((a, b) => b.zeroScoreDefeats - a.zeroScoreDefeats);
+};
+
+const calculateWinPercentage = (games: Game[], playerId: number) => {
+  const wins = games.filter((game) =>
+    game.winner.team.includes(playerId)
+  ).length;
+  return games.length > 0 ? (wins / games.length) * 100 : 0;
+};
+
 const aggregateStats = (games: Game[]) => {
+  const profiles = games.reduce<number[]>((acc, game) => {
+    game.winner.team.forEach((playerId) => {
+      if (!acc.includes(playerId)) {
+        acc.push(playerId);
+      }
+    });
+    game.loser.team.forEach((playerId) => {
+      if (!acc.includes(playerId)) {
+        acc.push(playerId);
+      }
+    });
+    return acc;
+  }, []);
+
   const biggestWin = biggestWinMargin(games);
+
+  const highestScoringGame = getHighestScoringGame(games);
+
   const uniqueTeams = extractUniqueTeams(games);
-  const winningStreaks = uniqueTeams.map((team) => ({
-    team,
-    ...calculateWinningStreaks(team, games),
-  }));
+
+  const winningStreaks = uniqueTeams
+    .map((team) => ({
+      team,
+      ...calculateStreak(team, games),
+    }))
+    .sort((a, b) => b.currentStreak - a.currentStreak);
+
+  const lossStreaks = uniqueTeams
+    .map((team) => ({
+      team,
+      ...calculateStreak(team, games, true),
+    }))
+    .sort((a, b) => b.currentStreak - a.currentStreak);
   const teamStats = calculateTeamStats(games);
+
+  const mostImprovedPlayer = calculatePlayerChange(
+    profiles,
+    games,
+    "improvement"
+  );
+
+  const mostWorsenedPlayer = calculatePlayerChange(
+    profiles,
+    games,
+    "worsening"
+  );
+
+  const bestRevengeMatch = calculateBestRevengeMatch(games);
+
+  const zeroScoreDefeats = calculateZeroScoreDefeats(profiles, games);
 
   return {
     biggestWin,
+    highestScoringGame,
     winningStreaks,
+    lossStreaks,
     teamStats,
+    mostImprovedPlayer,
+    mostWorsenedPlayer,
+    bestRevengeMatch,
+    zeroScoreDefeats,
   };
 };
 
