@@ -91,7 +91,12 @@ const GridComponent = ({ data, onCloseStats }) => {
 export default GridComponent;
 
 const Table = ({ columns, data, playerNames }) => (
-  <div className="overflow-x-auto flex flex-col flex-grow bg-white shadow rounded ">
+  <div
+    className="overflow-x-auto flex flex-col flex-grow bg-white shadow rounded "
+    onScroll={(e) => {
+      e.stopPropagation();
+    }}
+  >
     <table className="overflow-x-auto min-w-full">
       <thead style={{ position: "sticky", top: 0, backgroundColor: "#1C01CB" }}>
         <tr>
