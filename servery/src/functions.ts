@@ -147,28 +147,17 @@ const calculateStreak = (
     const isWin = normalizedWinnerTeam.includes(normalizedIds);
     const isLoss = normalizedLoserTeam.includes(normalizedIds);
 
-    if (isLosingStreak) {
-      if (isLoss) {
-        tempStreak++;
-      } else {
-        longestStreak = Math.max(longestStreak, tempStreak);
-        tempStreak = 0; // Reset temporary streak counter
-      }
+    if (isLosingStreak ? isLoss : isWin) {
+      tempStreak++;
+      currentStreak = tempStreak; // Update current streak as we go
     } else {
-      if (isWin) {
-        tempStreak++;
-      } else {
-        longestStreak = Math.max(longestStreak, tempStreak);
-        tempStreak = 0; // Reset temporary streak counter
-      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+      tempStreak = 0; // Reset temporary streak counter
     }
   });
 
   // After iterating through all games, check if the last game continued the streak
-  if (tempStreak > 0) {
-    longestStreak = Math.max(longestStreak, tempStreak);
-    currentStreak = tempStreak;
-  }
+  longestStreak = Math.max(longestStreak, tempStreak);
 
   return { currentStreak, longestStreak };
 };
