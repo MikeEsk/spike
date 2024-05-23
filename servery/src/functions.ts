@@ -125,37 +125,50 @@ const getBiggestWinMarginInSeries = (
 };
 
 const calculateStreak = (
-  teamId: number[],
+  ids: number[], // Can be a teamId or a playerId wrapped in an array
   games: Game[],
   isLosingStreak: boolean = false
 ): { currentStreak: number; longestStreak: number } => {
   let longestStreak = 0;
   let currentStreak = 0;
+  let tempStreak = 0; // Temporary streak counter
 
-  const normalizedTeamId = teamId.sort((a, b) => a - b).join("-");
+  // Sort and join the IDs for consistent comparison
+  const normalizedIds = ids.sort((a, b) => a - b).join("-");
 
   games.forEach((game) => {
+    // Sort and join the winner and loser team IDs for consistent comparison
     const normalizedWinnerTeam = game.winner.team
       .sort((a, b) => a - b)
       .join("-");
     const normalizedLoserTeam = game.loser.team.sort((a, b) => a - b).join("-");
 
+    // Determine if the current game is a win or loss for the given IDs
+    const isWin = normalizedWinnerTeam.includes(normalizedIds);
+    const isLoss = normalizedLoserTeam.includes(normalizedIds);
+
     if (isLosingStreak) {
-      if (normalizedTeamId === normalizedLoserTeam) {
-        currentStreak++;
-        longestStreak = Math.max(longestStreak, currentStreak);
+      if (isLoss) {
+        tempStreak++;
       } else {
-        currentStreak = 0;
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 0; // Reset temporary streak counter
       }
     } else {
-      if (normalizedTeamId === normalizedWinnerTeam) {
-        currentStreak++;
-        longestStreak = Math.max(longestStreak, currentStreak);
+      if (isWin) {
+        tempStreak++;
       } else {
-        currentStreak = 0;
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 0; // Reset temporary streak counter
       }
     }
   });
+
+  // After iterating through all games, check if the last game continued the streak
+  if (tempStreak > 0) {
+    longestStreak = Math.max(longestStreak, tempStreak);
+    currentStreak = tempStreak;
+  }
 
   return { currentStreak, longestStreak };
 };
