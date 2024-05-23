@@ -118,7 +118,7 @@ export default () => {
   if (state.profiles.length === 0) return <h1>...Loading</h1>;
 
   return (
-    <Fragment>
+    <div className="h-full w-full">
       <Home
         state={state}
         addProfile={({ profile }) =>
@@ -154,6 +154,6 @@ export default () => {
           onCompleteGame={onCompleteGame}
         />
       )}
-    </Fragment>
+    </div>
   );
 };
