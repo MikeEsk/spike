@@ -133,19 +133,24 @@ const calculateStreak = (
   let currentStreak = 0;
   let tempStreak = 0; // Temporary streak counter
 
-  // Sort and join the IDs for consistent comparison
-  const normalizedIds = ids.sort((a, b) => a - b).join("-");
-
   games.forEach((game) => {
-    // Sort and join the winner and loser team IDs for consistent comparison
-    const normalizedWinnerTeam = game.winner.team
-      .sort((a, b) => a - b)
-      .join("-");
-    const normalizedLoserTeam = game.loser.team.sort((a, b) => a - b).join("-");
+    let isWin = false;
+    let isLoss = false;
 
-    // Determine if the current game is a win or loss for the given IDs
-    const isWin = normalizedWinnerTeam.includes(normalizedIds);
-    const isLoss = normalizedLoserTeam.includes(normalizedIds);
+    if (ids.length === 1) {
+      // Single player ID case
+      const playerId = ids[0];
+      isWin = game.winner.team.includes(playerId);
+      isLoss = game.loser.team.includes(playerId);
+    } else {
+      // Team ID array case
+      isWin =
+        ids.every((id) => game.winner.team.includes(id)) &&
+        ids.length === game.winner.team.length;
+      isLoss =
+        ids.every((id) => game.loser.team.includes(id)) &&
+        ids.length === game.loser.team.length;
+    }
 
     if (isLosingStreak ? isLoss : isWin) {
       tempStreak++;
