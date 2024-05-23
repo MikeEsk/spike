@@ -64,12 +64,15 @@ export default ({
   startThunderDome,
   onRandomize,
   onClearProfiles,
+  onOpenStats,
 }: {
   state: GameState;
   addProfile: ({ profile }: { profile: Profile }) => void;
   startThunderDome: () => void;
   onRandomize: () => void;
   onClearProfiles: () => void;
+  showStats: boolean;
+  onOpenStats: () => void;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
@@ -177,7 +180,7 @@ export default ({
             {state.selectedProfiles.length > 0 &&
               state.selectedProfiles.length !== 4 && (
                 <Button
-                  className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl z-10 pointer-events-auto opacity-80"
+                  className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl pointer-events-auto opacity-80"
                   onClick={onClearProfiles}
                 >
                   &times;
@@ -208,12 +211,16 @@ export default ({
           </div>
         </div>
       </div>
-      <div className="w-1/6 bg-purple-700 p-4">
+      <div className="flex flex-col w-1/6 bg-purple-700 p-4 space-y-4">
         <Button
           onClick={onRandomize}
           className={state.isRandom ? "bg-green-500" : ""}
         >
           Random
+        </Button>
+
+        <Button onClick={onOpenStats} className="bg-orange-500 text-white">
+          Stats
         </Button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import Home from "./Home";
 import { Fragment, useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
+import Stats from "./Stats";
 
 export type Profile = {
   id: string;
@@ -42,6 +43,8 @@ export default () => {
     isRandom: false,
   });
 
+  const [showStats, setShowStats] = useState(true);
+
   const onClose = () => {
     setState((prev) => ({
       ...prev,
@@ -79,12 +82,25 @@ export default () => {
     }
   };
 
+  const onOpenStats = () => {
+    fetchStats();
+    setShowStats(true);
+  };
+
   const fetchData = async () => {
     const res = await fetch(`${apiUrl}/pave/profiles`, {
       method: "GET",
     });
     const data = await res.json();
     setState((prev) => ({ ...prev, profiles: data }));
+  };
+
+  const fetchStats = async () => {
+    const res = await fetch(`${apiUrl}/pave/stats`, {
+      method: "GET",
+    });
+    const data = await res.json();
+    setState((prev) => ({ ...prev, stats: data }));
   };
 
   useEffect(() => {
@@ -126,7 +142,11 @@ export default () => {
         onClearProfiles={() =>
           setState((prev) => ({ ...prev, selectedProfiles: [] }))
         }
+        onOpenStats={onOpenStats}
       />
+      {showStats && state.stats && (
+        <Stats data={state.stats} onCloseStats={() => setShowStats(false)} />
+      )}
       {state.loadGame && (
         <ThunderDome
           selectedProfiles={state.selectedProfiles}
