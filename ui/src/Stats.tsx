@@ -24,22 +24,19 @@ const GridComponent = ({ data, onCloseStats }) => {
     "currentStreak",
   ];
 
+  const sortedTeamStats = [...teamStats].sort(
+    (a, b) => b.longestStreak - a.longestStreak
+  );
+
   return (
     <div className="absolute bg-gray-300 top-0 left-0 right-0 bottom-0 grid grid-cols-2 grid-rows-2 gap-4 p-4">
-      <div className="overflow-x-auto flex flex-col">
-        <Table
-          columns={playerColumns}
-          data={playerStats}
-          playerNames={playerNames}
-        />
-      </div>
-      <div className="overflow-x-auto flex flex-col">
-        <Table
-          columns={teamColumns}
-          data={teamStats}
-          playerNames={playerNames}
-        />
-      </div>
+      <Table
+        columns={playerColumns}
+        data={playerStats}
+        playerNames={playerNames}
+      />
+      <Table columns={teamColumns} data={teamStats} playerNames={playerNames} />
+
       <div className="flex-1 space-y-2">
         <div className="flex space-x-2">
           <BiggestWinBox
@@ -65,12 +62,27 @@ const GridComponent = ({ data, onCloseStats }) => {
           />
         </div>
       </div>
+      <div className="flex flex-1 space-x-2">
+        <Table
+          columns={["team", "longestStreak"]}
+          data={sortedTeamStats}
+          playerNames={playerNames}
+        />
+        <Table
+          columns={["name", "zeroScoreDefeats"]}
+          data={aggregate.zeroScoreDefeats.map((player) => ({
+            ...player,
+            name: playerNames[player.id],
+          }))}
+          playerNames={playerNames}
+        />
+      </div>
 
       <Button
         onClick={onCloseStats}
-        className="absolute top-2 left-2 bg-orange-500 text-white"
+        className="absolute top-2 right-2 bg-orange-500 text-white text-3xl font-bold opacity-70"
       >
-        x
+        &times;
       </Button>
     </div>
   );
@@ -79,7 +91,7 @@ const GridComponent = ({ data, onCloseStats }) => {
 export default GridComponent;
 
 const Table = ({ columns, data, playerNames }) => (
-  <div className="bg-white shadow rounded">
+  <div className="overflow-x-auto flex flex-col flex-grow bg-white shadow rounded ">
     <table className="overflow-x-auto min-w-full">
       <thead style={{ position: "sticky", top: 0, backgroundColor: "#1C01CB" }}>
         <tr>
@@ -173,7 +185,7 @@ const HighestScoringGameBox = ({ data, playerNames }) => (
         <div className="font-semibold">Winner: </div>
         <div>{data.winner.team.map((id) => playerNames[id]).join("/")}</div>
       </div>
-      <div className="text-4xl font-bold p-1 bg-yellow-300 text-red-400 rounded-md">
+      <div className="text-2xl font-bold p-1 bg-yellow-300 text-red-400 rounded-md">
         {data.winner.score} - {data.loser.score}
       </div>
       <div>
@@ -187,14 +199,18 @@ const HighestScoringGameBox = ({ data, playerNames }) => (
 const PlayerImprovementBox = ({ player, playerNames, title }) => (
   <div className="p-2 border bg-white shadow rounded flex flex-col flex-grow items-center">
     <h3 className="text-lg font-bold">{title}</h3>(last 5 games)
-    <img
-      src={`${apiUrl}/pave/profilepics/${playerNames[
-        player.profile
-      ].toLowerCase()}`}
-      alt={playerNames[player.profile]}
-      className="h-24 w-24 rounded-full object-cover mb-2"
-    />
-    <h3 className="text-xl font-bold mb-1">{playerNames[player.profile]}</h3>
+    <div className="flex items-center align-middle space-x-4">
+      <img
+        src={`${apiUrl}/pave/profilepics/${playerNames[
+          player.profile
+        ].toLowerCase()}`}
+        alt={playerNames[player.profile]}
+        className="h-24 w-24 rounded-full object-cover mb-2"
+      />
+      <div className="text-xl font-bold mb-1">
+        {playerNames[player.profile]}
+      </div>
+    </div>
     <p className="text-sm">
       {player.change > 0 ? "Improved" : "Worsened"} by {Math.abs(player.change)}
       %
