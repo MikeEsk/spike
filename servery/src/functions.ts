@@ -58,7 +58,7 @@ const pointsPerGamePerPlayer = (playerId: number, games: Game[]): number => {
     }
   });
 
-  return gameCount > 0 ? totalScore / gameCount : 0;
+  return gameCount > 0 ? +(totalScore / gameCount).toFixed(1) : 0;
 };
 
 const pointsPerGamePerTeam = (teamId: number[], games: Game[]): number => {
@@ -74,32 +74,62 @@ const pointsPerGamePerTeam = (teamId: number[], games: Game[]): number => {
       gameCount++;
     }
   });
-  return gameCount > 0 ? totalScore / gameCount : 0;
+  return gameCount > 0 ? +(totalScore / gameCount).toFixed(1) : 0;
 };
 
-const biggestWinMargin = (
-  games: Game[]
+const getBiggestWinMarginInSeries = (
+  games: Game[],
+  seriesLength: number = 3
 ): {
   biggestMargin: number;
-  game: Game | null;
+  series: Game[] | null;
 } => {
-  if (games.length === 0) {
-    return { biggestMargin: 0, game: null };
+  if (games.length < seriesLength) {
+    return { biggestMargin: 0, series: null };
   }
 
-  return games.reduce(
-    (acc, game) => {
-      const margin = Math.abs(
-        parseInt(game.winner.score) - parseInt(game.loser.score)
-      );
-      if (margin > acc.biggestMargin) {
-        acc.biggestMargin = margin;
-        acc.game = game;
+  let maxMargin = 0;
+  let maxMarginSeries: Game[] | null = null;
+
+  for (let i = 0; i <= games.length - seriesLength; i++) {
+    const series = games.slice(i, i + seriesLength);
+
+    // Check if the current winning team and losing team have the same IDs as the last winning and losing team in the series
+    let isSameSeries = true;
+    const teamIdsToString = (teamIds) =>
+      teamIds.sort((a, b) => a - b).join("-");
+    const prevSeries = series[0];
+    const prevWinningTeam = teamIdsToString(prevSeries.winner.team);
+    const prevLosingTeam = teamIdsToString(prevSeries.loser.team);
+
+    for (let j = 1; j < series.length; j++) {
+      const currentWinningTeam = teamIdsToString(series[j].winner.team);
+      const currentLosingTeam = teamIdsToString(series[j].loser.team);
+
+      if (
+        prevWinningTeam !== currentWinningTeam ||
+        prevLosingTeam !== currentLosingTeam
+      ) {
+        isSameSeries = false;
+        break;
       }
-      return acc;
-    },
-    { biggestMargin: 0, game: games[0] }
-  );
+    }
+    if (isSameSeries) {
+      const margin = series.reduce((acc, game) => {
+        return (
+          acc +
+          Math.abs(parseInt(game.winner.score) - parseInt(game.loser.score))
+        );
+      }, 0);
+
+      if (margin > maxMargin) {
+        maxMargin = margin;
+        maxMarginSeries = series;
+      }
+    }
+  }
+
+  return { biggestMargin: maxMargin, series: maxMarginSeries };
 };
 
 const calculateStreak = (
@@ -159,7 +189,7 @@ const extractUniqueTeams = (games: Game[]) => {
 
 const calculateTeamStats = (games: Game[]) => {
   const uniqueTeams = extractUniqueTeams(games);
-  return uniqueTeams.map((team) => {
+  const teamStats = uniqueTeams.map((team) => {
     const wins = getWinsByTeamId(team, games);
     const losses = getLossesByTeamId(team, games);
     const pointsPerGame = pointsPerGamePerTeam(team, games);
@@ -177,31 +207,43 @@ const calculateTeamStats = (games: Game[]) => {
       longestStreak: calculateStreak(team, games).longestStreak,
     };
   });
+
+  return teamStats.sort((a, b) => {
+    const winPercentageDiff =
+      parseFloat(b.winPercentage) - parseFloat(a.winPercentage);
+    if (winPercentageDiff !== 0) {
+      return winPercentageDiff;
+    }
+    return b.pointsPerGame - a.pointsPerGame;
+  });
 };
 
 const calculateAllPlayerStats = (
   profiles: { id: number; name: string }[],
   games: Game[]
 ) => {
-  return profiles.map((profile) => {
+  const playerStats = profiles.map((profile) => {
     const wins = getWinsByPlayerId(profile.id, games);
     const losses = getLossesByPlayerId(profile.id, games);
     const pointsPerGame = pointsPerGamePerPlayer(profile.id, games);
+    const winPercentage = wins + losses > 0 ? wins / (wins + losses) : 0;
 
     return {
       id: profile.id,
       name: profile.name,
       wins: wins,
       losses: losses,
-      winPercentage:
-        wins + losses > 0
-          ? `${Math.round((wins / (wins + losses)) * 100)}%`
-          : "0%",
+      winPercentage: `${Math.round(winPercentage * 100)}%`,
       pointsPerGame: pointsPerGame,
       currentStreak: calculateStreak([profile.id], games).currentStreak,
       longestStreak: calculateStreak([profile.id], games).longestStreak,
     };
   });
+
+  // Sort by win percentage in descending order
+  return playerStats.sort(
+    (a, b) => parseFloat(b.winPercentage) - parseFloat(a.winPercentage)
+  );
 };
 
 const getHighestScoringGame = (games: Game[]): Game => {
@@ -272,13 +314,12 @@ const calculateBestRevengeMatch = (games: Game[]) => {
 };
 
 const calculateZeroScoreDefeats = (profiles: number[], games: Game[]) => {
-  const results = profiles.map((profile) => {
-    console.log("profile", profile);
+  const results = profiles.map((id) => {
     const zeroScoreGames = games.filter(
-      (game) => game.loser.team.includes(profile) && +game.loser.score === 0
+      (game) => game.loser.team.includes(id) && +game.loser.score === 0
     );
     return {
-      profile,
+      id,
       zeroScoreDefeats: zeroScoreGames.length,
     };
   });
@@ -308,7 +349,7 @@ const aggregateStats = (games: Game[]) => {
     return acc;
   }, []);
 
-  const biggestWin = biggestWinMargin(games);
+  const biggestWinMarginInSeries = getBiggestWinMarginInSeries(games);
 
   const highestScoringGame = getHighestScoringGame(games);
 
@@ -346,7 +387,7 @@ const aggregateStats = (games: Game[]) => {
   const zeroScoreDefeats = calculateZeroScoreDefeats(profiles, games);
 
   return {
-    biggestWin,
+    biggestWinMarginInSeries,
     highestScoringGame,
     winningStreaks,
     lossStreaks,
