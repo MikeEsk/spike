@@ -94,27 +94,19 @@ const getBiggestWinMarginInSeries = (
   for (let i = 0; i <= games.length - seriesLength; i++) {
     const series = games.slice(i, i + seriesLength);
 
-    // Check if the current winning team and losing team have the same IDs as the last winning and losing team in the series
-    let isSameSeries = true;
-    const teamIdsToString = (teamIds) =>
+    // Check if the current winning team has won at least 2 games in the series
+    let winCounts: { [key: string]: number } = {};
+    const teamIdsToString = (teamIds: number[]) =>
       teamIds.sort((a, b) => a - b).join("-");
-    const prevSeries = series[0];
-    const prevWinningTeam = teamIdsToString(prevSeries.winner.team);
-    const prevLosingTeam = teamIdsToString(prevSeries.loser.team);
 
-    for (let j = 1; j < series.length; j++) {
-      const currentWinningTeam = teamIdsToString(series[j].winner.team);
-      const currentLosingTeam = teamIdsToString(series[j].loser.team);
+    series.forEach((game) => {
+      const winningTeam = teamIdsToString(game.winner.team);
+      winCounts[winningTeam] = (winCounts[winningTeam] || 0) + 1;
+    });
 
-      if (
-        prevWinningTeam !== currentWinningTeam ||
-        prevLosingTeam !== currentLosingTeam
-      ) {
-        isSameSeries = false;
-        break;
-      }
-    }
-    if (isSameSeries) {
+    const hasTwoWins = Object.values(winCounts).some((count) => count >= 2);
+
+    if (hasTwoWins) {
       const margin = series.reduce((acc, game) => {
         return (
           acc +
