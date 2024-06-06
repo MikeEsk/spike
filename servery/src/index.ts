@@ -2,6 +2,7 @@ import {
   calculateAllPlayerStats,
   calculateTeamStats,
   aggregateStats,
+  createTournamentFromTeams,
 } from "./functions";
 
 const profiles: { id: number; name: string }[] = [
@@ -181,7 +182,7 @@ Bun.serve({
       }
     }
 
-    if (url.pathname.startsWith(`${baseUrl}`)) {
+    if (url.pathname.startsWith(`${baseUrl}/createGame`)) {
       try {
         const data = await createGame(request);
         return new Response(JSON.stringify(data), {
@@ -192,6 +193,53 @@ Bun.serve({
         });
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    if (url.pathname.startsWith(`${baseUrl}/createTournament`)) {
+      try {
+        const requestBody = await request.json();
+        console.log("body", requestBody);
+        const teamsArray = requestBody.teams;
+
+        if (!Array.isArray(teamsArray) || teamsArray.length < 3) {
+          return new Response(
+            JSON.stringify({ error: "Invalid teams array" }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+
+        const tournament = createTournamentFromTeams(teamsArray);
+        const tournamentString = JSON.stringify(tournament, null, 2);
+        const tournamentPath = `./tournaments/${tournament.name.replace(
+          /\s+/g,
+          "_"
+        )}.txt`;
+
+        await Bun.write(tournamentPath, tournamentString);
+
+        return new Response(tournamentString, {
+          status: 201,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        return new Response(
+          JSON.stringify({ error: "Failed to create tournament" }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
       }
     }
 
