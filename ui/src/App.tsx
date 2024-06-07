@@ -2,6 +2,7 @@ import Home from "./Home";
 import { Fragment, useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
 import Stats from "./Stats";
+import Tournament from "./Tournament";
 
 export type Profile = {
   id: string;
@@ -44,6 +45,7 @@ export default () => {
   });
 
   const [showStats, setShowStats] = useState(true);
+  const [showTournament, setShowTournament] = useState(false);
 
   const onClose = () => {
     setState((prev) => ({
@@ -85,6 +87,10 @@ export default () => {
   const onOpenStats = () => {
     fetchStats();
     setShowStats(true);
+  };
+
+  const onOpenTournament = () => {
+    setShowTournament(true);
   };
 
   const fetchData = async () => {
@@ -143,6 +149,7 @@ export default () => {
           setState((prev) => ({ ...prev, selectedProfiles: [] }))
         }
         onOpenStats={onOpenStats}
+        onOpenTournament={onOpenTournament}
       />
       {showStats && state.stats && (
         <Stats data={state.stats} onCloseStats={() => setShowStats(false)} />
@@ -154,6 +161,7 @@ export default () => {
           onCompleteGame={onCompleteGame}
         />
       )}
+      {showTournament && <Tournament />}
     </div>
   );
 };

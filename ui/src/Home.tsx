@@ -65,6 +65,7 @@ export default ({
   onRandomize,
   onClearProfiles,
   onOpenStats,
+  onOpenTournament,
 }: {
   state: GameState;
   addProfile: ({ profile }: { profile: Profile }) => void;
@@ -73,6 +74,7 @@ export default ({
   onClearProfiles: () => void;
   showStats: boolean;
   onOpenStats: () => void;
+  onOpenTournament: () => void;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
@@ -221,6 +223,10 @@ export default ({
 
         <Button onClick={onOpenStats} className="bg-orange-500 text-white">
           Stats
+        </Button>
+
+        <Button onClick={onOpenTournament} className="bg-blue-500 text-white">
+          Tournament
         </Button>
       </div>
     </div>
