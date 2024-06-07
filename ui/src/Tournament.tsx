@@ -54,7 +54,7 @@ function TournamentList({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center border-b-2 border-gray-100 py-6 md:justify-start md:space-x-10">
         <div className="lg:flex-1">
-          <h1 className="text-3xl font-bold leading-tight text-gray-900">
+          <h1 className="text-3xl font-bold leading-tight text-white">
             Tournaments
           </h1>
         </div>
@@ -271,30 +271,33 @@ const Bracket = ({
   tournament: Tournament;
   profiles: Profile[];
 }) => {
-  console.log("tournament", tournament);
-  if (!tournament) return;
+  if (!tournament) return null;
   const rounds = Object.keys(tournament.rounds).map(Number);
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex justify-between items-start space-x-12">
+    <div className="flex flex-1 bg-purple-800 h-[200%] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-1 justify-around space-x-12 ">
         {rounds.map((round, index) => (
-          <div key={round} className="flex flex-col items-center">
+          <div key={round} className="flex flex-col items-center h-full w-64">
             <h2 className="text-lg font-bold mb-4">Round {round}</h2>
-            <div className="flex flex-col space-y-4">
-              {tournament.rounds[round].map((match, idx) => (
+            <div className="flex flex-col justify-around h-full w-full">
+              {tournament.rounds[round].map((match, idx, matches) => (
                 <div key={idx} className="flex flex-col items-center">
                   <Matchup match={match} profiles={profiles} />
+                  {idx < matches.length - 1 && (
+                    <div className="flex-grow"></div>
+                  )}
                 </div>
               ))}
             </div>
-            {index < rounds.length - 1 && (
-              <div className="absolute top-0 h-full w-0.5 bg-gray-400 left-full ml-6"></div>
-            )}
           </div>
         ))}
       </div>
     </div>
   );
+};
+
+const isSameTeam = (teamA: number[], teamB: number[]) => {
+  return teamA.every((id, index) => id === teamB[index]);
 };
 
 const Matchup = ({
@@ -304,30 +307,52 @@ const Matchup = ({
   match: Match;
   profiles: Profile[];
 }) => {
+  const getScoreColor = (isWinner: boolean) => {
+    if (isWinner) return "text-green-500";
+    return "text-red-500";
+  };
+
   return (
-    <div className="flex flex-col shrink-0 items-center border p-2 rounded-lg h-32 w-full divide-y">
+    <div className="flex flex-col bg-white shrink-0 items-center border p-2 rounded-lg h-32 w-full divide-y">
       {match.teams.map((team, index) => (
-        <div key={index} className="flex flex-1 items-center space-x-1 w-full">
+        <div
+          key={index}
+          className="flex flex-1 items-center space-x-1 w-full justify-between"
+        >
           {team?.team ? (
-            <div className="flex flex-1">
-              {team.team.map((playerId) => (
-                <div key={playerId} className="flex items-center space-x-1">
-                  <img
-                    src={`${apiUrl}/pave/profilepics/${profiles[
-                      playerId
-                    ].name.toLowerCase()}`}
-                    alt={profiles[playerId].name}
-                    className="w-10 h-10 border border-gray-300"
-                  />
-                  <p className="text-sm">{profiles[playerId].name}</p>
+            <>
+              <div className="flex flex-1">
+                <div className="text-lg font-bold px-2 py-1 rounded">
+                  {team.seed}
                 </div>
-              ))}
-              <div className="text-sm border px-2 py-1 rounded ml-auto">
-                {team.seed}
+                {team.team.map((playerId) => (
+                  <div key={playerId} className="flex items-center space-x-1">
+                    <img
+                      src={`${apiUrl}/pave/profilepics/${profiles[
+                        playerId
+                      ].name.toLowerCase()}`}
+                      alt={profiles[playerId].name}
+                      className="w-10 h-10 border border-gray-300"
+                    />
+                    <p className="text-sm">{profiles[playerId].name}</p>
+                  </div>
+                ))}
               </div>
-            </div>
+              <div
+                className={`text-lg font-bold px-2 py-1 rounded ${getScoreColor(
+                  match.result?.winner?.team === team.team
+                )}`}
+              >
+                {match.result?.winner?.team &&
+                isSameTeam(match.result?.winner?.team, team.team)
+                  ? match.result.winner.score
+                  : match.result?.loser?.score}
+              </div>
+            </>
           ) : (
-            <div className="flex flex-1 w-full justify-center">BYE</div>
+            <div className="flex flex-1 w-full justify-center text-gray-500">
+              BYE
+            </div>
           )}
         </div>
       ))}
@@ -404,7 +429,7 @@ function Tournament({
   };
 
   return (
-    <div className="absolute inset-0 bg-white">
+    <div className="absolute inset-0 bg-purple-800 flex grow">
       <Button
         className="absolute top-0 left-0 m-4"
         onClick={

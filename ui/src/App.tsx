@@ -124,7 +124,7 @@ export default () => {
   if (state.profiles.length === 0) return <h1>...Loading</h1>;
 
   return (
-    <div className="h-full w-full">
+    <div className="flex grow">
       <Home
         state={state}
         addProfile={({ profile }) =>

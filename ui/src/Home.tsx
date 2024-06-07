@@ -1,5 +1,4 @@
 import { useEffect, useState } from "endr";
-import "./App.css";
 import JTLogo from "./assets/jtlogo.png";
 import Bell from "./assets/bell.mp3";
 import SpikeLogo from "./assets/spikelogo.png";
