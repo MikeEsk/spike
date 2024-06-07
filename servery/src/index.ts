@@ -3,6 +3,7 @@ import {
   calculateTeamStats,
   aggregateStats,
   createTournamentFromTeams,
+  updateTournamentWithMatchResult,
 } from "./functions";
 
 const profiles: { id: number; name: string }[] = [
@@ -233,6 +234,66 @@ Bun.serve({
         console.error(error);
         return new Response(
           JSON.stringify({ error: "Failed to create tournament" }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+    }
+
+    if (url.pathname.startsWith(`${baseUrl}/updateTournament`)) {
+      try {
+        const requestBody = await request.json();
+        const { tournamentName, matchResult, roundNumber } = requestBody;
+
+        if (
+          !tournamentName ||
+          !matchResult ||
+          typeof roundNumber !== "number"
+        ) {
+          return new Response(
+            JSON.stringify({ error: "Invalid request body" }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+
+        const tournamentPath = `./tournaments/${tournamentName.replace(
+          /\s+/g,
+          "_"
+        )}.txt`;
+        const tournamentData = await Bun.file(tournamentPath).text();
+        const tournament = JSON.parse(tournamentData);
+
+        const updatedTournament = updateTournamentWithMatchResult(
+          tournament,
+          matchResult,
+          roundNumber
+        );
+        const updatedTournamentString = JSON.stringify(
+          updatedTournament,
+          null,
+          2
+        );
+        await Bun.write(tournamentPath, updatedTournamentString);
+
+        return new Response(updatedTournamentString, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        return new Response(
+          JSON.stringify({ error: "Failed to update tournament" }),
           {
             status: 500,
             headers: {

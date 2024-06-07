@@ -68,52 +68,73 @@ const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
 
   // Calculate the total number of spots in the first round (next power of two)
   const totalSpots = Math.pow(2, Math.ceil(Math.log2(teams.length)));
+
+  // Calculate the number of byes needed
   const byes = totalSpots - teams.length;
 
   // Calculate the number of rounds needed for the tournament
   const roundsCount = Math.ceil(Math.log2(totalSpots));
 
   const rounds: Round[] = [];
+  let matches: Match[] = []; // Matches for the current round
+  let roundNumber = 1; // Start from round 1
 
   // Create the first round with matches and byes
-  let matches: Match[] = [];
-  for (let i = 0; i < totalSpots; i++) {
-    if (i < byes) {
-      // Assign byes to the top-seeded teams
+  let matchIndex = 0; // To keep track of the match index separately
+  for (let i = 0; i < teams.length; i++) {
+    // If the current match index is less than the number of byes, this team gets a bye
+    if (matchIndex < byes) {
       matches.push({
-        teams: [teams[i], null],
+        teams: [teams[i], null], // Team gets a bye
         bracketType: BracketType.Main,
         result: null,
       });
     } else {
-      // Pair the remaining teams for matches
-      const teamIndex = i - byes;
-      if (teamIndex < teams.length) {
-        const team1 = teams[teamIndex];
-        const team2 =
-          teamIndex + 1 < teams.length ? teams[teamIndex + 1] : null;
-        matches.push({
-          teams: [team1, team2],
-          bracketType: BracketType.Main,
-          result: null,
-        });
-        i++; // Increment i to skip the next team since it has been paired with the current one
-      }
-    }
-  }
-  rounds.push({ matches, roundNumber: 1 });
-
-  // Create subsequent rounds with empty matches
-  for (let roundNumber = 2; roundNumber <= roundsCount; roundNumber++) {
-    let matches: Match[] = [];
-    for (let i = 0; i < Math.pow(2, roundsCount - roundNumber); i++) {
+      // Pair the teams for matches
+      const team1 = teams[i];
+      const team2 = i + 1 < teams.length ? teams[i + 1] : null;
       matches.push({
-        teams: [null, null],
+        teams: [team1, team2], // Pair the teams
+        bracketType: BracketType.Main,
+        result: null,
+      });
+      i++; // Increment i to skip the next team since it has been paired with the current one
+    }
+    matchIndex++; // Increment the match index for each iteration
+  }
+
+  rounds.push({ matches, roundNumber });
+
+  // Continue creating rounds until we have a winner
+  while (rounds[rounds.length - 1].matches.length > 1) {
+    roundNumber++;
+    const previousRoundMatches = rounds[rounds.length - 1].matches;
+    matches = [];
+
+    // Pair up the winners of the previous round for the next round
+    for (let i = 0; i < previousRoundMatches.length; i += 2) {
+      const team1 =
+        roundNumber === 2
+          ? !previousRoundMatches[i].teams[1]
+            ? previousRoundMatches[i].teams[0]
+            : null
+          : null;
+      const team2 =
+        roundNumber === 2 && i + 1 < previousRoundMatches.length
+          ? !previousRoundMatches[i + 1].teams[1]
+            ? previousRoundMatches[i + 1].teams[0]
+            : null
+          : null;
+
+      matches.push({
+        teams: [team1, team2],
         bracketType: BracketType.Main,
         result: null,
       });
     }
-    rounds.push({ matches, roundNumber });
+
+    // Add the new round to the rounds array
+    rounds.push({ matches: matches, roundNumber: roundNumber });
   }
 
   // Construct the Tournament object
@@ -579,4 +600,5 @@ export {
   calculateTeamStats,
   aggregateStats,
   createTournamentFromTeams,
+  updateTournamentWithMatchResult,
 };
