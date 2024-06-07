@@ -24,18 +24,12 @@ interface Tournament {
   startTime: Date;
   endTime: Date;
   teams: TeamWithSeed[];
-  rounds: Round[];
+  rounds: { [key: number]: Match[] };
 }
 
 interface TeamWithSeed {
   team: Team | null;
   seed: number | null;
-}
-
-// Interface for a Round
-interface Round {
-  matches: Match[]; // Array of matches in this round
-  roundNumber: number; // Sequential number of the round
 }
 
 // Interface for a Match
@@ -72,10 +66,7 @@ const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
   // Calculate the number of byes needed
   const byes = totalSpots - teams.length;
 
-  // Calculate the number of rounds needed for the tournament
-  const roundsCount = Math.ceil(Math.log2(totalSpots));
-
-  const rounds: Round[] = [];
+  const rounds: { [roundNumber: number]: Match[] } = {};
   let matches: Match[] = []; // Matches for the current round
   let roundNumber = 1; // Start from round 1
 
@@ -103,12 +94,12 @@ const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
     matchIndex++; // Increment the match index for each iteration
   }
 
-  rounds.push({ matches, roundNumber });
+  rounds[roundNumber] = matches;
 
   // Continue creating rounds until we have a winner
-  while (rounds[rounds.length - 1].matches.length > 1) {
+  while (rounds[Math.max(...Object.keys(rounds).map(Number))].length > 1) {
     roundNumber++;
-    const previousRoundMatches = rounds[rounds.length - 1].matches;
+    const previousRoundMatches = rounds[roundNumber - 1];
     matches = [];
 
     // Pair up the winners of the previous round for the next round
@@ -133,8 +124,7 @@ const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
       });
     }
 
-    // Add the new round to the rounds array
-    rounds.push({ matches: matches, roundNumber: roundNumber });
+    rounds[roundNumber] = matches;
   }
 
   // Construct the Tournament object
@@ -150,14 +140,14 @@ const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
   return tournament;
 };
 
-const isSameMatch = (match: Match, matchResult: Match): boolean => {
+const isSameMatch = (match: Match, matchResult: MatchResult): boolean => {
   return (
     (match.teams[0]?.team?.every((id) =>
-      matchResult.teams[0]?.team?.includes(id)
+      matchResult.winner?.team?.includes(id)
     ) ??
       false) &&
     (match.teams[1]?.team?.every((id) =>
-      matchResult.teams[1]?.team?.includes(id)
+      matchResult.loser?.team?.includes(id)
     ) ??
       false)
   );
@@ -165,24 +155,19 @@ const isSameMatch = (match: Match, matchResult: Match): boolean => {
 
 const updateTournamentWithMatchResult = (
   tournament: Tournament,
-  matchResult: Match,
+  matchResult: MatchResult,
   roundNumber: number
 ): Tournament => {
-  // Find the match in the tournament and update its result
-  const round = tournament.rounds.find((r) => r.roundNumber === roundNumber);
-  if (!round) {
-    throw new Error("Round not found in the tournament.");
-  }
-
-  const matchIndex = round.matches.findIndex((match) =>
+  const round = tournament.rounds[roundNumber];
+  const matchIndex = round.findIndex((match: Match) =>
     isSameMatch(match, matchResult)
   );
-  if (matchIndex === -1) {
+  console.log("here");
+  if (matchIndex !== -1) {
+    tournament.rounds[roundNumber][matchIndex].result = matchResult;
+  } else {
     throw new Error("Match not found in the tournament.");
   }
-
-  round.matches[matchIndex].result = matchResult.result;
-
   return tournament;
 };
 
