@@ -6,6 +6,8 @@ import {
   updateTournamentWithMatchResult,
 } from "./functions";
 
+import fs from "fs";
+
 const profiles: { id: number; name: string }[] = [
   { id: 1, name: "Casey" },
   { id: 2, name: "Nate" },
@@ -200,8 +202,8 @@ Bun.serve({
     if (url.pathname.startsWith(`${baseUrl}/createTournament`)) {
       try {
         const requestBody = await request.json();
-        console.log("body", requestBody);
         const teamsArray = requestBody.teams;
+        const name = requestBody.name;
 
         if (!Array.isArray(teamsArray) || teamsArray.length < 3) {
           return new Response(
@@ -215,7 +217,19 @@ Bun.serve({
           );
         }
 
-        const tournament = createTournamentFromTeams(teamsArray);
+        const tournamentPathCheck = `./tournaments/${name.replace(
+          /\s+/g,
+          "_"
+        )}.txt`;
+        if (
+          await fs.promises
+            .access(tournamentPathCheck, fs.constants.F_OK)
+            .then(() => true)
+            .catch(() => false)
+        ) {
+          throw new Error(`Tournament with the name "${name}" already exists.`);
+        }
+        const tournament = createTournamentFromTeams(teamsArray, name);
         const tournamentString = JSON.stringify(tournament, null, 2);
         const tournamentPath = `./tournaments/${tournament.name.replace(
           /\s+/g,
@@ -241,6 +255,77 @@ Bun.serve({
             },
           }
         );
+      }
+    }
+
+    if (url.pathname.startsWith(`${baseUrl}/tournament`)) {
+      try {
+        const requestBody = await request.json();
+        const name = requestBody.name;
+
+        console.log("name", name);
+        const tournamentPath = `./tournaments/${name.replace(/\s+/g, "_")}.txt`;
+
+        if (
+          await fs.promises
+            .access(tournamentPath, fs.constants.F_OK)
+            .then(() => true)
+            .catch(() => false)
+        ) {
+          const tournamentData = await Bun.file(tournamentPath).text();
+          return new Response(tournamentData, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } else {
+          return new Response(
+            JSON.stringify({
+              error: `Tournament with the name "${name}" not found.`,
+            }),
+            {
+              status: 404,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        return new Response(
+          JSON.stringify({ error: "Failed to retrieve tournament" }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+    }
+
+    if (url.pathname === `${baseUrl}/tournaments`) {
+      try {
+        const tournamentsDir = new URL("../tournaments/", import.meta.url)
+          .pathname;
+        const tournamentFiles = await fs.promises.readdir(tournamentsDir);
+        const tournamentNames = tournamentFiles.map((fileName) =>
+          fileName.replace(/_/g, " ").replace(".txt", "")
+        );
+        return new Response(JSON.stringify(tournamentNames), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        return new Response("Internal Server Error", {
+          status: 500,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
     }
 

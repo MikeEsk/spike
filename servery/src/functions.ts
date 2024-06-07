@@ -39,9 +39,12 @@ interface Match {
   bracketType: BracketType; // Indicates if the match is in the Main or Losers bracket
 }
 
-const createTournamentFromTeams = (teamsArray: Team[]): Tournament => {
+const createTournamentFromTeams = (
+  teamsArray: Team[],
+  name: string
+): Tournament => {
   const tournamentType: "single" | "double" = "single"; // This could be dynamic based on some condition or input
-  const tournamentName: string = "New Tournament"; // This could be dynamic based on some condition or input
+  const tournamentName: string = name; // This could be dynamic based on some condition or input
   const startTime: Date = new Date(); // This could be dynamic based on some condition or input
   const endTime: Date = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // Assuming the tournament ends in 7 days
 
