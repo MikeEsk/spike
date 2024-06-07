@@ -1,7 +1,49 @@
 import { useEffect, useState } from "endr";
 import Button from "./Button";
+import { Profile } from "./App";
 
 const apiUrl = import.meta.env.VITE_API_URL;
+
+type Team = number[];
+
+interface TeamScore {
+  team: Team;
+  score: string;
+}
+
+// Interface for a MatchResult
+interface MatchResult {
+  winner: TeamScore | null;
+  loser: TeamScore | null;
+}
+
+// Enum for bracket types
+enum BracketType {
+  Main = "Main",
+  Losers = "Losers",
+}
+
+// Interface for a Tournament
+interface Tournament {
+  type: "double" | "single";
+  name: string;
+  startTime: Date;
+  endTime: Date;
+  teams: TeamWithSeed[];
+  rounds: { [key: number]: Match[] };
+}
+
+interface TeamWithSeed {
+  team: Team | null;
+  seed: number | null;
+}
+
+// Interface for a Match
+interface Match {
+  teams: [TeamWithSeed | null, TeamWithSeed | null]; // Pair of teams participating in the match
+  result: MatchResult | null; // Optional game result, present only after the match is concluded
+  bracketType: BracketType; // Indicates if the match is in the Main or Losers bracket
+}
 
 function TournamentList({
   tournaments,
@@ -28,11 +70,11 @@ function TournamentList({
       </div>
 
       {tournaments.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col p-8 space-y-4">
           {tournaments.map((tournament) => (
-            <div
+            <Button
               key={tournament.id}
-              className="max-w-sm rounded overflow-hidden shadow-lg"
+              className=" max-w-sm rounded overflow-hidden shadow-lg bg-purple-500"
               onClick={() => onTournamentClick(tournament)}
             >
               {/* <div className="px-6 py-4">
@@ -49,8 +91,9 @@ function TournamentList({
                   #{tournament.type}
                 </span>
               </div> */}
+
               {tournament}
-            </div>
+            </Button>
           ))}
         </div>
       ) : (
@@ -79,7 +122,7 @@ function NewTournamentForm({ onCreate }) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+          <h3 className="text-lg leading-6 font-medium text-purple-900 font-bold">
             Create New Tournament
           </h3>
         </div>
@@ -89,7 +132,7 @@ function NewTournamentForm({ onCreate }) {
               <div className="col-span-3 sm:col-span-2">
                 <label
                   htmlFor="tournament-name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="flex text-sm font-lg font-bold text-gray-700"
                 >
                   Tournament Name
                 </label>
@@ -107,7 +150,7 @@ function NewTournamentForm({ onCreate }) {
             <div className="mt-6">
               <label
                 htmlFor="tournament-type"
-                className="block text-sm font-medium text-gray-700"
+                className="flex text-sm font-lg font-bold text-gray-700"
               >
                 Tournament Type
               </label>
@@ -137,7 +180,13 @@ function NewTournamentForm({ onCreate }) {
   );
 }
 
-function TeamSelection({ players, onTeamSelected }) {
+function TeamSelection({
+  profiles,
+  onTeamSelected,
+}: {
+  profiles: Profile[];
+  onTeamSelected: () => void;
+}) {
   const [teams, setTeams] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
 
@@ -160,26 +209,27 @@ function TeamSelection({ players, onTeamSelected }) {
   return (
     <div className="flex flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex-grow grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {players.map((player) => {
-          const isSelected = selectedPlayers.some((p) => p.id === player.id);
+        {profiles.map((profile) => {
+          const isSelected = selectedPlayers.some((p) => p.id === profile.id);
           const teamNumber = teams.find((team) =>
-            team.players.some((p) => p.id === player.id)
+            team.players.some((p) => p.id === profile.id)
           )?.id;
           return (
             <div
-              key={player.id}
+              key={profile.id}
               className={`p-4 max-w-sm bg-white rounded-lg border shadow-md sm:p-8 ${
                 isSelected
                   ? "bg-gray-200"
                   : "dark:bg-gray-800 dark:border-gray-700"
               }`}
-              onClick={() => handlePlayerClick(player)}
+              onClick={() => handlePlayerClick(profile)}
             >
               <div className="flex justify-center items-center mb-4">
                 <img
                   className="w-24 h-24 rounded-full shadow-lg"
-                  src={player.image}
-                  alt={player.name}
+                  key={profile.id}
+                  src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
+                  alt={profile.name}
                 />
                 {teamNumber && (
                   <span className="absolute mt-2 ml-2 text-xs font-semibold text-white bg-indigo-600 px-2 py-1 rounded-full">
@@ -188,7 +238,7 @@ function TeamSelection({ players, onTeamSelected }) {
                 )}
               </div>
               <h5 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">
-                {player.name}
+                {profile.name}
               </h5>
             </div>
           );
@@ -214,8 +264,16 @@ function TeamSelection({ players, onTeamSelected }) {
   );
 }
 
-function Bracket({ tournament }) {
-  const rounds = Object.keys(tournament.rounds);
+const Bracket = ({
+  tournament,
+  profiles,
+}: {
+  tournament: Tournament;
+  profiles: Profile[];
+}) => {
+  console.log("tournament", tournament);
+  if (!tournament) return;
+  const rounds = Object.keys(tournament.rounds).map(Number);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex justify-between items-start space-x-12">
@@ -225,10 +283,7 @@ function Bracket({ tournament }) {
             <div className="flex flex-col space-y-4">
               {tournament.rounds[round].map((match, idx) => (
                 <div key={idx} className="flex flex-col items-center">
-                  <Matchup match={match} />
-                  {idx < tournament.rounds[round].length - 1 && (
-                    <div className="w-0.5 bg-gray-300 h-8"></div>
-                  )}
+                  <Matchup match={match} profiles={profiles} />
                 </div>
               ))}
             </div>
@@ -240,41 +295,56 @@ function Bracket({ tournament }) {
       </div>
     </div>
   );
-}
+};
 
-function Matchup({ match }) {
+const Matchup = ({
+  match,
+  profiles,
+}: {
+  match: Match;
+  profiles: Profile[];
+}) => {
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex flex-col shrink-0 items-center border p-2 rounded-lg h-32 w-full divide-y">
       {match.teams.map((team, index) => (
-        <div key={index} className="flex items-center space-x-1">
-          {team &&
-            team.players.map((player) => (
-              <div key={player.id} className="flex items-center space-x-1">
-                <img
-                  src={player.image}
-                  alt={player.name}
-                  className="w-10 h-10 rounded-full"
-                />
-                <p className="text-sm">{player.name}</p>
-                <span className="text-xs font-semibold">
-                  {player.score || 0}
-                </span>
+        <div key={index} className="flex flex-1 items-center space-x-1 w-full">
+          {team?.team ? (
+            <div className="flex flex-1">
+              {team.team.map((playerId) => (
+                <div key={playerId} className="flex items-center space-x-1">
+                  <img
+                    src={`${apiUrl}/pave/profilepics/${profiles[
+                      playerId
+                    ].name.toLowerCase()}`}
+                    alt={profiles[playerId].name}
+                    className="w-10 h-10 border border-gray-300"
+                  />
+                  <p className="text-sm">{profiles[playerId].name}</p>
+                </div>
+              ))}
+              <div className="text-sm border px-2 py-1 rounded ml-auto">
+                {team.seed}
               </div>
-            ))}
-          {index === 0 && match.teams.length > 1 && (
-            <span className="font-bold text-lg">VS</span>
+            </div>
+          ) : (
+            <div className="flex flex-1 w-full justify-center">BYE</div>
           )}
         </div>
       ))}
     </div>
   );
-}
+};
 
-function Tournament() {
+function Tournament({
+  onClose,
+  profiles,
+}: {
+  onClose: () => void;
+  profiles: Profile[];
+}) {
   const [currentScreen, setCurrentScreen] = useState("list"); // 'list', 'create', 'selectTeams', 'bracket'
   const [tournaments, setTournaments] = useState([]);
   const [currentTournament, setCurrentTournament] = useState(null);
-  const [players, setPlayers] = useState([]);
 
   const handleCreateNewClick = () => {
     setCurrentScreen("create");
@@ -293,11 +363,22 @@ function Tournament() {
   }, []);
 
   const onTournamentClick = (tournament) => {
-    setCurrentTournament(tournament);
     setCurrentScreen("bracket");
+
+    fetch(`${apiUrl}/pave/tournament`, {
+      method: "POST",
+      body: JSON.stringify({ name: tournament }),
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setCurrentTournament(data))
+      .catch((error) => console.error("Error posting tournament:", error));
   };
 
-  const handleCreateTournament = (tournamentData) => {
+  const handleCreateTournament = async (tournamentData) => {
     const newTournament = {
       ...tournamentData,
       id: tournaments.length + 1,
@@ -324,14 +405,14 @@ function Tournament() {
 
   return (
     <div className="absolute inset-0 bg-white">
-      {currentScreen !== "list" && (
-        <Button
-          className="absolute top-0 left-0 m-4"
-          onClick={() => setCurrentScreen("list")}
-        >
-          Back
-        </Button>
-      )}
+      <Button
+        className="absolute top-0 left-0 m-4"
+        onClick={
+          currentScreen === "list" ? onClose : () => setCurrentScreen("list")
+        }
+      >
+        Back
+      </Button>
 
       {currentScreen === "list" && (
         <TournamentList
@@ -344,10 +425,13 @@ function Tournament() {
         <NewTournamentForm onCreate={handleCreateTournament} />
       )}
       {currentScreen === "selectTeams" && (
-        <TeamSelection players={players} onTeamSelected={handleTeamSelected} />
+        <TeamSelection
+          profiles={profiles}
+          onTeamSelected={handleTeamSelected}
+        />
       )}
       {currentScreen === "bracket" && (
-        <Bracket tournament={currentTournament} />
+        <Bracket tournament={currentTournament} profiles={profiles} />
       )}
       {currentScreen !== "list" &&
         currentScreen !== "create" &&

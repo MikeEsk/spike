@@ -161,7 +161,12 @@ export default () => {
           onCompleteGame={onCompleteGame}
         />
       )}
-      {showTournament && <Tournament />}
+      {showTournament && (
+        <Tournament
+          onClose={() => setShowTournament(false)}
+          profiles={state.profiles}
+        />
+      )}
     </div>
   );
 };
