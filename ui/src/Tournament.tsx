@@ -2,48 +2,9 @@ import { useEffect, useState } from "endr";
 import Button from "./Button";
 import { Profile } from "./App";
 
+import { Tournament, Match } from "./App";
+
 const apiUrl = import.meta.env.VITE_API_URL;
-
-type Team = number[];
-
-interface TeamScore {
-  team: Team;
-  score: string;
-}
-
-// Interface for a MatchResult
-interface MatchResult {
-  winner: TeamScore | null;
-  loser: TeamScore | null;
-}
-
-// Enum for bracket types
-enum BracketType {
-  Main = "Main",
-  Losers = "Losers",
-}
-
-// Interface for a Tournament
-interface Tournament {
-  type: "double" | "single";
-  name: string;
-  startTime: Date;
-  endTime: Date;
-  teams: TeamWithSeed[];
-  rounds: { [key: number]: Match[] };
-}
-
-interface TeamWithSeed {
-  team: Team | null;
-  seed: number | null;
-}
-
-// Interface for a Match
-export interface Match {
-  teams: [TeamWithSeed | null, TeamWithSeed | null]; // Pair of teams participating in the match
-  result: MatchResult | null; // Optional game result, present only after the match is concluded
-  bracketType: BracketType; // Indicates if the match is in the Main or Losers bracket
-}
 
 function TournamentList({
   tournaments,
@@ -69,11 +30,11 @@ function TournamentList({
         </div>
       </div>
 
-      {tournaments.length > 0 ? (
+      {tournaments?.length > 0 ? (
         <div className="flex flex-col p-8 space-y-4">
-          {tournaments.map((tournament) => (
+          {tournaments.map((tournament: Tournament) => (
             <Button
-              key={tournament.id}
+              key={tournament.name}
               className=" max-w-sm rounded overflow-hidden shadow-lg bg-purple-500"
               onClick={() => onTournamentClick(tournament)}
             >
@@ -83,8 +44,8 @@ function TournamentList({
         </div>
       ) : (
         <div className="mt-8 text-center">
-          <p className="text-gray-600">
-            No tournaments available. Please create a new tournament.
+          <p className="text-white">
+            No tournaments found. Please create a new one.
           </p>
         </div>
       )}
@@ -125,10 +86,11 @@ function NewTournamentForm({ onCreate }) {
                   type="text"
                   name="tournament-name"
                   id="tournament-name"
+                  autoComplete="off"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter tournament name"
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-3 p-3 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg "
                 />
               </div>
             </div>
@@ -155,7 +117,8 @@ function NewTournamentForm({ onCreate }) {
                 type="submit"
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                Create Tournament
+                Pick Teams
+                <strong className="ml-2">→</strong>
               </button>
             </div>
           </form>
@@ -167,64 +130,65 @@ function NewTournamentForm({ onCreate }) {
 
 function TeamSelection({
   profiles,
-  onTeamSelected,
+  onFinalizeTournament,
 }: {
   profiles: Profile[];
-  onTeamSelected: () => void;
+  onFinalizeTournament: () => void;
 }) {
   const [teams, setTeams] = useState([]);
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const [teamCounter, setTeamCounter] = useState(1);
 
   const handlePlayerClick = (player) => {
-    const alreadySelected = selectedPlayers.find((p) => p.id === player.id);
-    if (!alreadySelected && selectedPlayers.length < 2) {
-      setSelectedPlayers([...selectedPlayers, player]);
-    }
-  };
+    const updatedTeams = [...teams];
 
-  const confirmTeams = () => {
-    if (selectedPlayers.length === 2) {
-      const newTeam = { id: teams.length + 1, players: selectedPlayers };
-      setTeams([...teams, newTeam]);
-      onTeamSelected(newTeam);
-      setSelectedPlayers([]);
+    if (updatedTeams.length < teamCounter) {
+      updatedTeams.push({ id: teamCounter, players: [player] });
+    } else {
+      updatedTeams[teamCounter - 1].players.push(player);
+    }
+    setTeams(updatedTeams);
+
+    if (updatedTeams[teamCounter - 1].players.length === 2) {
+      setTeamCounter(teamCounter + 1);
     }
   };
 
   return (
-    <div className="flex flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex-grow grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="flex flex-row max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4">
         {profiles.map((profile) => {
-          const isSelected = selectedPlayers.some((p) => p.id === profile.id);
-          const teamNumber = teams.find((team) =>
+          const team = teams.find((team) =>
             team.players.some((p) => p.id === profile.id)
-          )?.id;
+          );
+          const isSelected = !!team;
           return (
             <div
               key={profile.id}
-              className={`p-4 max-w-sm bg-white rounded-lg shadow-md sm:p-8 ${
-                isSelected
-                  ? "bg-gray-200"
-                  : "dark:bg-gray-800 dark:border-gray-700"
-              }`}
+              className="relative"
               onClick={() => handlePlayerClick(profile)}
+              style={{ aspectRatio: "1 / 1" }}
             >
-              <div className="flex justify-center items-center mb-4">
+              <div
+                className={`relative w-full h-full ${
+                  isSelected ? "opacity-30" : ""
+                }`}
+              >
                 <img
-                  className="w-24 h-24 rounded-full shadow-lg"
-                  key={profile.id}
+                  className="w-full h-full rounded-md shadow-md object-cover"
                   src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
                   alt={profile.name}
                 />
-                {teamNumber && (
-                  <span className="absolute mt-2 ml-2 text-xs font-semibold text-white bg-indigo-600 px-2 py-1 rounded-full">
-                    {teamNumber}
-                  </span>
-                )}
+                <div className="absolute bottom-0 right-0 bg-yellow-300 rounded-tl-lg p-1">
+                  <h5 className="text-sm font-medium text-gray-900 dark:text-purple-800 font-bold">
+                    {profile.name}
+                  </h5>
+                </div>
               </div>
-              <h5 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">
-                {profile.name}
-              </h5>
+              {isSelected && (
+                <div className="absolute inset-0 flex items-center justify-center text-6xl font-bold text-yellow-300">
+                  {team.id}
+                </div>
+              )}
             </div>
           );
         })}
@@ -236,14 +200,6 @@ function TeamSelection({
             Team {team.id}: {team.players.map((p) => p.name).join(" & ")}
           </div>
         ))}
-        {selectedPlayers.length === 2 && (
-          <button
-            className="mt-4 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            onClick={confirmTeams}
-          >
-            Confirm Team
-          </button>
-        )}
       </div>
     </div>
   );
@@ -361,29 +317,29 @@ const Matchup = ({
   );
 };
 
-function Tournament({
+export default ({
   onClose,
   profiles,
   openThunderDome,
+  fetchTournaments,
+  tournaments,
+  setTournaments,
+  currentTournament,
+  setCurrentTournament,
 }: {
   onClose: () => void;
   profiles: Profile[];
   openThunderDome: (match: Match) => void;
-}) {
+  fetchTournaments: () => Promise<void>;
+  tournaments: Tournament[];
+  setTournaments: (tournaments: Tournament[]) => void;
+  currentTournament: Tournament | null;
+  setCurrentTournament: (tournament: Tournament | null) => void;
+}) => {
   const [currentScreen, setCurrentScreen] = useState("list"); // 'list', 'create', 'selectTeams', 'bracket'
-  const [tournaments, setTournaments] = useState([]);
-  const [currentTournament, setCurrentTournament] = useState(null);
 
   const handleCreateNewClick = () => {
     setCurrentScreen("create");
-  };
-
-  const fetchTournaments = async () => {
-    const res = await fetch(`${apiUrl}/pave/tournaments`, {
-      method: "GET",
-    });
-    const data = await res.json();
-    setTournaments(data);
   };
 
   useEffect(() => {
@@ -406,6 +362,8 @@ function Tournament({
       .catch((error) => console.error("Error posting tournament:", error));
   };
 
+  const onFinalizeTournament = () => {};
+
   const handleCreateTournament = async (tournamentData) => {
     const newTournament = {
       ...tournamentData,
@@ -418,25 +376,16 @@ function Tournament({
     setCurrentScreen("selectTeams");
   };
 
-  const handleTeamSelected = (team) => {
-    const updatedTournament = {
-      ...currentTournament,
-      teams: [...currentTournament.teams, team],
-    };
-    setCurrentTournament(updatedTournament);
-    // Continue to team selection until teams are fully populated, then switch to brackets
-    if (updatedTournament.teams.length >= 8) {
-      // Assuming a tournament requires 8 teams
-      setCurrentScreen("bracket");
-    }
-  };
-
   return (
     <div className="absolute inset-0 bg-purple-800 flex grow">
       <Button
         className="absolute top-0 left-0 m-4"
         onClick={
-          currentScreen === "list" ? onClose : () => setCurrentScreen("list")
+          currentScreen === "list"
+            ? onClose
+            : currentScreen === "selectTeams"
+            ? () => setCurrentScreen("create")
+            : () => setCurrentScreen("list")
         }
       >
         Back
@@ -455,7 +404,7 @@ function Tournament({
       {currentScreen === "selectTeams" && (
         <TeamSelection
           profiles={profiles}
-          onTeamSelected={handleTeamSelected}
+          onFinalizeTournament={onFinalizeTournament}
         />
       )}
       {currentScreen === "bracket" && (
@@ -471,6 +420,4 @@ function Tournament({
         currentScreen !== "bracket" && <div>Invalid state</div>}
     </div>
   );
-}
-
-export default Tournament;
+};

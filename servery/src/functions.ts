@@ -158,9 +158,26 @@ const isSameMatch = (match: Match, matchResult: MatchResult): boolean => {
 
 const updateTournamentWithMatchResult = (
   tournament: Tournament,
-  matchResult: MatchResult,
-  roundNumber: number
+  matchResult: MatchResult
 ): Tournament => {
+  let roundNumber;
+  for (
+    let roundIndex = 1;
+    roundIndex < Object.keys(tournament.rounds).length;
+    roundIndex++
+  ) {
+    if (
+      tournament.rounds[roundIndex].some((match) =>
+        isSameMatch(match, matchResult)
+      )
+    ) {
+      roundNumber = roundIndex;
+      break;
+    }
+  }
+  if (roundNumber === undefined) {
+    throw new Error("Round not found for the given match result.");
+  }
   const round = tournament.rounds[roundNumber];
   const matchIndex = round.findIndex((match: Match) =>
     isSameMatch(match, matchResult)

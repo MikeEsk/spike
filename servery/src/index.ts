@@ -334,13 +334,9 @@ Bun.serve({
     if (url.pathname.startsWith(`${baseUrl}/updateTournament`)) {
       try {
         const requestBody = await request.json();
-        const { tournamentName, matchResult, roundNumber } = requestBody;
+        const { tournamentName, scores } = requestBody.data;
 
-        if (
-          !tournamentName ||
-          !matchResult ||
-          typeof roundNumber !== "number"
-        ) {
+        if (!tournamentName || !scores) {
           return new Response(
             JSON.stringify({ error: "Invalid request body" }),
             {
@@ -361,8 +357,7 @@ Bun.serve({
 
         const updatedTournament = updateTournamentWithMatchResult(
           tournament,
-          matchResult,
-          roundNumber
+          scores
         );
         const updatedTournamentString = JSON.stringify(
           updatedTournament,
@@ -375,19 +370,16 @@ Bun.serve({
           status: 200,
           headers: {
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
           },
         });
       } catch (error) {
-        console.error(error);
-        return new Response(
-          JSON.stringify({ error: "Failed to update tournament" }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        return new Response(JSON.stringify({ error: `${error}` }), {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
       }
     }
 

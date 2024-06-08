@@ -1,12 +1,18 @@
 import { useState } from "endr";
-import { Profile } from "./App";
+import { Profile, Tournament } from "./App";
 import Button from "./Button";
 
 import { Scores } from "./App";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
+const Keypad = ({
+  type,
+  onComplete,
+  onClose,
+  slideDirection = "up",
+  currentTournament,
+}) => {
   const [input, setInput] = useState("");
   const slideInClass =
     slideDirection === "left" ? "animate-slideInLeft" : "animate-slideInUp";
@@ -55,7 +61,7 @@ const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
           </button>
         </div>
         <div className="flex space-x-2.5">
-          {!type && (
+          {!type && !currentTournament && (
             <button
               className=" bg-orange-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
               onClick={() =>
@@ -93,6 +99,7 @@ export default ({
   selectedProfiles,
   onCompleteGame,
   onClose,
+  currentTournament,
 }: {
   selectedProfiles: Profile[];
   onClose: () => void;
@@ -103,6 +110,8 @@ export default ({
     scores: Scores;
     rematch: boolean;
   }) => void;
+  isTournamentMatch: boolean;
+  currentTournament: Tournament;
 }) => {
   const [isReversing, setIsReversing] = useState(false);
 
@@ -200,6 +209,7 @@ export default ({
           onComplete={handleScoreEntry}
           onClose={() => setScoreState(null)}
           slideDirection="left"
+          currentTournament={currentTournament}
         />
       )}
       <Button className="absolute top-2 left-2" onClick={onClose}>

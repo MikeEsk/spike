@@ -65,6 +65,7 @@ export default ({
   onClearProfiles,
   onOpenStats,
   onOpenTournament,
+  statsIsLoading,
 }: {
   state: GameState;
   addProfile: ({ profile }: { profile: Profile }) => void;
@@ -74,6 +75,7 @@ export default ({
   showStats: boolean;
   onOpenStats: () => void;
   onOpenTournament: () => void;
+  statsIsLoading: boolean;
 }) => {
   const [size, setSize] = useState({
     width: window.innerWidth / 2,
@@ -221,13 +223,21 @@ export default ({
         </Button>
 
         <Button onClick={onOpenStats} className="bg-orange-500 text-white">
-          Stats
+          {statsIsLoading ? <Loader /> : "Stats"}
         </Button>
 
-        <Button onClick={onOpenTournament} className="bg-blue-500 text-white">
+        <Button onClick={onOpenTournament} className="bg-blue-600 text-white">
           Tournament
         </Button>
       </div>
+    </div>
+  );
+};
+
+const Loader = () => {
+  return (
+    <div className="flex justify-center items-center">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
     </div>
   );
 };
