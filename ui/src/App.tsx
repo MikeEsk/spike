@@ -1,8 +1,9 @@
 import Home from "./Home";
-import { Fragment, useEffect, useState } from "endr";
+import { useEffect, useState } from "endr";
 import ThunderDome from "./ThunderDome";
 import Stats from "./Stats";
-import Tournament from "./Tournament";
+import Tournament, { Match } from "./Tournament";
+import Bell from "./assets/bell.mp3";
 
 export type Profile = {
   id: string;
@@ -84,6 +85,22 @@ export default () => {
     }
   };
 
+  const openThunderDome = (match: Match) => {
+    if (match.teams[0]?.team && match.teams[1]?.team) {
+      const audio = new Audio(Bell);
+      audio.play();
+      setState((prev) => ({
+        ...prev,
+        selectedProfiles: match.teams.flatMap(
+          (team) =>
+            (team && team.team?.map((playerId) => state.profiles[playerId])) ??
+            []
+        ),
+        loadGame: true,
+      }));
+    }
+  };
+
   const onOpenStats = () => {
     fetchStats();
     setShowStats(true);
@@ -154,17 +171,19 @@ export default () => {
       {showStats && state.stats && (
         <Stats data={state.stats} onCloseStats={() => setShowStats(false)} />
       )}
+
+      {showTournament && (
+        <Tournament
+          onClose={() => setShowTournament(false)}
+          profiles={state.profiles}
+          openThunderDome={openThunderDome}
+        />
+      )}
       {state.loadGame && (
         <ThunderDome
           selectedProfiles={state.selectedProfiles}
           onClose={onClose}
           onCompleteGame={onCompleteGame}
-        />
-      )}
-      {showTournament && (
-        <Tournament
-          onClose={() => setShowTournament(false)}
-          profiles={state.profiles}
         />
       )}
     </div>

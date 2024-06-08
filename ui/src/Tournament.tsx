@@ -39,7 +39,7 @@ interface TeamWithSeed {
 }
 
 // Interface for a Match
-interface Match {
+export interface Match {
   teams: [TeamWithSeed | null, TeamWithSeed | null]; // Pair of teams participating in the match
   result: MatchResult | null; // Optional game result, present only after the match is concluded
   bracketType: BracketType; // Indicates if the match is in the Main or Losers bracket
@@ -77,21 +77,6 @@ function TournamentList({
               className=" max-w-sm rounded overflow-hidden shadow-lg bg-purple-500"
               onClick={() => onTournamentClick(tournament)}
             >
-              {/* <div className="px-6 py-4">
-                <div className="font-bold text-xl mb-2">{tournament.name}</div>
-                <p className="text-gray-700 text-base">
-                  Players: {tournament.teams.length * 2}
-                </p>
-                <p className="text-gray-700 text-base">
-                  Rounds: {Object.keys(tournament.rounds).length}
-                </p>
-              </div>
-              <div className="px-6 pt-4 pb-2">
-                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-                  #{tournament.type}
-                </span>
-              </div> */}
-
               {tournament}
             </Button>
           ))}
@@ -217,7 +202,7 @@ function TeamSelection({
           return (
             <div
               key={profile.id}
-              className={`p-4 max-w-sm bg-white rounded-lg border shadow-md sm:p-8 ${
+              className={`p-4 max-w-sm bg-white rounded-lg shadow-md sm:p-8 ${
                 isSelected
                   ? "bg-gray-200"
                   : "dark:bg-gray-800 dark:border-gray-700"
@@ -267,25 +252,31 @@ function TeamSelection({
 const Bracket = ({
   tournament,
   profiles,
+  openThunderDome,
 }: {
   tournament: Tournament;
   profiles: Profile[];
+  openThunderDome: (match: Match) => void;
 }) => {
   if (!tournament) return null;
   const rounds = Object.keys(tournament.rounds).map(Number);
   return (
     <div className="flex flex-1 bg-purple-800 h-[200%] mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-1 justify-around space-x-12 ">
-        {rounds.map((round, index) => (
+        {rounds.map((round) => (
           <div key={round} className="flex flex-col items-center h-full w-64">
-            <h2 className="text-lg font-bold mb-4">Round {round}</h2>
+            <h2 className="text-lg text-yellow-300 font-bold mb-4">
+              Round {round}
+            </h2>
             <div className="flex flex-col justify-around h-full w-full">
-              {tournament.rounds[round].map((match, idx, matches) => (
+              {tournament.rounds[round].map((match, idx) => (
                 <div key={idx} className="flex flex-col items-center">
-                  <Matchup match={match} profiles={profiles} />
-                  {idx < matches.length - 1 && (
-                    <div className="flex-grow"></div>
-                  )}
+                  <Matchup
+                    match={match}
+                    profiles={profiles}
+                    onClick={() => openThunderDome(match)}
+                    roundNumber={round}
+                  />
                 </div>
               ))}
             </div>
@@ -303,17 +294,19 @@ const isSameTeam = (teamA: number[], teamB: number[]) => {
 const Matchup = ({
   match,
   profiles,
+  onClick,
+  roundNumber,
 }: {
   match: Match;
   profiles: Profile[];
+  onClick: () => void;
+  roundNumber: number;
 }) => {
-  const getScoreColor = (isWinner: boolean) => {
-    if (isWinner) return "text-green-500";
-    return "text-red-500";
-  };
-
   return (
-    <div className="flex flex-col bg-white shrink-0 items-center border p-2 rounded-lg h-32 w-full divide-y">
+    <div
+      className="flex flex-col bg-white shrink-0 items-center border rounded-lg h-40 w-full divide-y divide-black shadow-xl cursor-pointer overflow-hidden"
+      onClick={onClick}
+    >
       {match.teams.map((team, index) => (
         <div
           key={index}
@@ -322,26 +315,34 @@ const Matchup = ({
           {team?.team ? (
             <>
               <div className="flex flex-1">
-                <div className="text-lg font-bold px-2 py-1 rounded">
+                <div className="text-lg font-bold self-center text-center px-2">
                   {team.seed}
                 </div>
                 {team.team.map((playerId) => (
-                  <div key={playerId} className="flex items-center space-x-1">
+                  <div
+                    key={playerId}
+                    className="flex flex-col grow items-center space-x-1 px-2 py-1"
+                  >
                     <img
                       src={`${apiUrl}/pave/profilepics/${profiles[
                         playerId
                       ].name.toLowerCase()}`}
                       alt={profiles[playerId].name}
-                      className="w-10 h-10 border border-gray-300"
+                      className="w-10 h-10 border border-gray-300 rounded-lg"
                     />
                     <p className="text-sm">{profiles[playerId].name}</p>
                   </div>
                 ))}
               </div>
               <div
-                className={`text-lg font-bold px-2 py-1 rounded ${getScoreColor(
-                  match.result?.winner?.team === team.team
-                )}`}
+                className={`text-lg font-bold px-2 py-1 border-l-2 h-full w-12 ${
+                  match.teams[0] && match.teams[1]
+                    ? "bg-gray-200"
+                    : match.result &&
+                      (isSameTeam(match.result.winner.team, team.team)
+                        ? "bg-green-300"
+                        : "bg-red-300")
+                }`}
               >
                 {match.result?.winner?.team &&
                 isSameTeam(match.result?.winner?.team, team.team)
@@ -350,8 +351,8 @@ const Matchup = ({
               </div>
             </>
           ) : (
-            <div className="flex flex-1 w-full justify-center text-gray-500">
-              BYE
+            <div className="flex font-bold flex-1 w-full justify-center text-gray-500">
+              {roundNumber === 1 ? "BYE" : ""}
             </div>
           )}
         </div>
@@ -363,9 +364,11 @@ const Matchup = ({
 function Tournament({
   onClose,
   profiles,
+  openThunderDome,
 }: {
   onClose: () => void;
   profiles: Profile[];
+  openThunderDome: (match: Match) => void;
 }) {
   const [currentScreen, setCurrentScreen] = useState("list"); // 'list', 'create', 'selectTeams', 'bracket'
   const [tournaments, setTournaments] = useState([]);
@@ -456,7 +459,11 @@ function Tournament({
         />
       )}
       {currentScreen === "bracket" && (
-        <Bracket tournament={currentTournament} profiles={profiles} />
+        <Bracket
+          tournament={currentTournament}
+          profiles={profiles}
+          openThunderDome={openThunderDome}
+        />
       )}
       {currentScreen !== "list" &&
         currentScreen !== "create" &&

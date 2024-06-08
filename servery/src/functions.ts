@@ -165,7 +165,7 @@ const updateTournamentWithMatchResult = (
   const matchIndex = round.findIndex((match: Match) =>
     isSameMatch(match, matchResult)
   );
-  console.log("here");
+
   if (matchIndex !== -1) {
     tournament.rounds[roundNumber][matchIndex].result = matchResult;
   } else {

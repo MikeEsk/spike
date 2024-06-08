@@ -11,7 +11,7 @@ const Keypad = ({ type, onComplete, onClose, slideDirection = "up" }) => {
   const slideInClass =
     slideDirection === "left" ? "animate-slideInLeft" : "animate-slideInUp";
   const baseClass =
-    "absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50";
+    "fixed top-0 left-0 bottom-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50 z-50";
 
   return (
     <div className={`${baseClass} ${slideInClass}`}>
@@ -146,7 +146,7 @@ export default ({
   };
 
   return (
-    <div className="absolute top-0 w-screen h-screen flex items-center justify-center bg-transparent z-100">
+    <div className="fixed top-0 w-screen h-screen flex items-center justify-center bg-transparent z-100">
       <div
         className={`w-1/2 h-full flex flex-col items-center justify-center bg-blue-500 transform -translate-x-full ${
           isReversing ? "animate-slideOutLeft" : "animate-slideInLeft"

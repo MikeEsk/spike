@@ -258,54 +258,6 @@ Bun.serve({
       }
     }
 
-    if (url.pathname.startsWith(`${baseUrl}/tournament`)) {
-      try {
-        const requestBody = await request.json();
-        const name = requestBody.name;
-
-        console.log("name", name);
-        const tournamentPath = `./tournaments/${name.replace(/\s+/g, "_")}.txt`;
-
-        if (
-          await fs.promises
-            .access(tournamentPath, fs.constants.F_OK)
-            .then(() => true)
-            .catch(() => false)
-        ) {
-          const tournamentData = await Bun.file(tournamentPath).text();
-          return new Response(tournamentData, {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-        } else {
-          return new Response(
-            JSON.stringify({
-              error: `Tournament with the name "${name}" not found.`,
-            }),
-            {
-              status: 404,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-        }
-      } catch (error) {
-        console.error(error);
-        return new Response(
-          JSON.stringify({ error: "Failed to retrieve tournament" }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
-    }
-
     if (url.pathname === `${baseUrl}/tournaments`) {
       try {
         const tournamentsDir = new URL("../tournaments/", import.meta.url)
@@ -326,6 +278,56 @@ Bun.serve({
           status: 500,
           headers: { "Content-Type": "text/plain" },
         });
+      }
+    }
+
+    if (url.pathname.startsWith(`${baseUrl}/tournament`)) {
+      try {
+        const requestBody = await request.json();
+        const name = requestBody.name;
+
+        const tournamentPath = `./tournaments/${name.replace(/\s+/g, "_")}.txt`;
+
+        if (
+          await fs.promises
+            .access(tournamentPath, fs.constants.F_OK)
+            .then(() => true)
+            .catch(() => false)
+        ) {
+          const tournamentData = await Bun.file(tournamentPath).text();
+          return new Response(tournamentData, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        } else {
+          return new Response(
+            JSON.stringify({
+              error: `Tournament with the name "${name}" not found.`,
+            }),
+            {
+              status: 404,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+              },
+            }
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        return new Response(
+          JSON.stringify({ error: "Failed to retrieve tournament" }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
       }
     }
 
