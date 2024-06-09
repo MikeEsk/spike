@@ -123,12 +123,13 @@ export default () => {
 
   const onCompleteGame = async ({ scores, rematch = false }) => {
     if (currentTournament) {
-      await updatedTournamentGame({
+      const res = await updatedTournamentGame({
         query: {
           tournamentName: currentTournament.name,
           scores: scores,
         },
       });
+      setCurrentTournament(res);
       setState((prev) => ({
         ...prev,
         selectedProfiles: [],

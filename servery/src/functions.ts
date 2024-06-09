@@ -147,11 +147,17 @@ const isSameMatch = (match: Match, matchResult: MatchResult): boolean => {
   return (
     (match.teams[0]?.team?.every((id) =>
       matchResult.winner?.team?.includes(id)
-    ) ??
+    ) ||
+      match.teams[1]?.team?.every((id) =>
+        matchResult.winner?.team?.includes(id)
+      ) ||
       false) &&
-    (match.teams[1]?.team?.every((id) =>
+    (match.teams[0]?.team?.every((id) =>
       matchResult.loser?.team?.includes(id)
-    ) ??
+    ) ||
+      match.teams[1]?.team?.every((id) =>
+        matchResult.loser?.team?.includes(id)
+      ) ||
       false)
   );
 };
@@ -163,7 +169,7 @@ const updateTournamentWithMatchResult = (
   let roundNumber;
   for (
     let roundIndex = 1;
-    roundIndex < Object.keys(tournament.rounds).length;
+    roundIndex <= Object.keys(tournament.rounds).length;
     roundIndex++
   ) {
     if (
@@ -184,7 +190,26 @@ const updateTournamentWithMatchResult = (
   );
 
   if (matchIndex !== -1) {
+    // Update the match result for the current round
     tournament.rounds[roundNumber][matchIndex].result = matchResult;
+
+    // Load the winning team into the next round
+    if (roundNumber < Object.keys(tournament.rounds).length) {
+      const nextRound = tournament.rounds[roundNumber + 1];
+      const nextMatchIndex = Math.floor(matchIndex / 2); // Determine the match slot in the next round
+      const nextMatch = nextRound[nextMatchIndex];
+
+      // Determine the position (0 or 1) in the next match for the winning team
+      const position = matchIndex % 2 === 0 ? 0 : 1;
+
+      if (nextMatch && matchResult.winner) {
+        // Set the winning team in the next match
+        nextMatch.teams[position] = {
+          team: matchResult.winner.team,
+          seed: null, // You might want to calculate the seed for the next round
+        };
+      }
+    }
   } else {
     throw new Error("Match not found in the tournament.");
   }
