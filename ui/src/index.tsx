@@ -1,5 +1,5 @@
 import { render } from "endr";
-import App from "./App";
+import App from "./app";
 
 const { document } = globalThis;
 

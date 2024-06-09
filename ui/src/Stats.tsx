@@ -1,4 +1,4 @@
-import Button from "./Button";
+import Button from "./button";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 

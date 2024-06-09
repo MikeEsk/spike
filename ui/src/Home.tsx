@@ -2,8 +2,8 @@ import { useEffect, useState } from "endr";
 import JTLogo from "./assets/jtlogo.png";
 import Bell from "./assets/bell.mp3";
 import SpikeLogo from "./assets/spikelogo.png";
-import Button from "./Button";
-import { GameState, Profile } from "./App";
+import Button from "./button";
+import { GameState, Profile } from "./app";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 

@@ -1,8 +1,8 @@
-import Home from "./Home";
+import Home from "./home.tsx";
 import { useEffect, useState } from "endr";
-import ThunderDome from "./ThunderDome";
-import Stats from "./Stats";
-import Tournament, { Match } from "./Tournament";
+import ThunderDome from "./thunderdome.tsx";
+import Stats from "./stats.tsx";
+import Tournament from "./tournament/index.tsx";
 import Bell from "./assets/bell.mp3";
 
 export type Profile = {

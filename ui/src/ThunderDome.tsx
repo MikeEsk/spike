@@ -1,8 +1,8 @@
 import { useState } from "endr";
-import { Profile, Tournament } from "./App";
-import Button from "./Button";
+import { Profile, Tournament } from "./app";
+import Button from "./button";
 
-import { Scores } from "./App";
+import { Scores } from "./app";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
