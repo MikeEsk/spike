@@ -172,7 +172,10 @@ export default () => {
         ...prev,
         selectedProfiles: match.teams.flatMap(
           (team) =>
-            (team && team.team?.map((playerId) => state.profiles[playerId])) ??
+            (team &&
+              team.team?.map((playerId) =>
+                state.profiles.find((profile) => profile.id === playerId)
+              )) ??
             []
         ),
         loadGame: true,

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "endr";
+import { useEffect, useState, useRef } from "endr";
 import Button from "./Button";
-import { Profile } from "./App";
+import { Profile, Team } from "./App";
 
 import { Tournament, Match } from "./App";
 
@@ -53,27 +53,40 @@ function TournamentList({
   );
 }
 
-function NewTournamentForm({ onCreate }) {
-  const [name, setName] = useState("");
-  const [type, setType] = useState("single");
+function NewTournamentForm({
+  onCreate,
+  tournamentName,
+  setTournamentName,
+  tournamentType,
+  setTournamentType,
+}) {
+  const tournamentNameInputRef = useRef(null);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (name.trim() && type) {
-      onCreate({ name, type });
+  // The inputs onChange isn't firing
+  useEffect(() => {
+    const handleNameChange = (event) => setTournamentName(event.target.value);
+    const inputElement = tournamentNameInputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener("input", handleNameChange);
     }
-  };
+
+    return () => {
+      if (inputElement) {
+        inputElement.removeEventListener("input", handleNameChange);
+      }
+    };
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-purple-900 font-bold">
+          <h3 className="text-lg leading-6 text-purple-900 font-bold">
             Create New Tournament
           </h3>
         </div>
         <div className="border-t border-gray-200">
-          <form onSubmit={handleSubmit} className="px-4 py-5 sm:p-6">
+          <div className="px-4 py-5 sm:p-6">
             <div className="grid grid-cols-3 gap-6">
               <div className="col-span-3 sm:col-span-2">
                 <label
@@ -83,12 +96,12 @@ function NewTournamentForm({ onCreate }) {
                   Tournament Name
                 </label>
                 <input
+                  ref={tournamentNameInputRef}
                   type="text"
                   name="tournament-name"
                   id="tournament-name"
                   autoComplete="off"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={tournamentName}
                   placeholder="Enter tournament name"
                   className="mt-3 p-3 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg "
                 />
@@ -104,8 +117,8 @@ function NewTournamentForm({ onCreate }) {
               <select
                 id="tournament-type"
                 name="tournament-type"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
+                value={tournamentType}
+                onChange={(e) => setTournamentType(e.target.value)}
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
               >
                 <option value="single">Single Elimination</option>
@@ -113,15 +126,15 @@ function NewTournamentForm({ onCreate }) {
               </select>
             </div>
             <div className="mt-8">
-              <button
-                type="submit"
+              <Button
+                onClick={onCreate}
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Pick Teams
                 <strong className="ml-2">→</strong>
-              </button>
+              </Button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
@@ -131,11 +144,14 @@ function NewTournamentForm({ onCreate }) {
 function TeamSelection({
   profiles,
   onFinalizeTournament,
+  teams,
+  setTeams,
 }: {
   profiles: Profile[];
   onFinalizeTournament: () => void;
+  teams: Team[];
+  setTeams: (teams: Team[]) => void;
 }) {
-  const [teams, setTeams] = useState([]);
   const [teamCounter, setTeamCounter] = useState(1);
 
   const handlePlayerClick = (player) => {
@@ -154,8 +170,8 @@ function TeamSelection({
   };
 
   return (
-    <div className="flex flex-row max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4">
+    <div className="flex flex-row px-4 sm:px-6 lg:pl-32 py-12">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-2/3">
         {profiles.map((profile) => {
           const team = teams.find((team) =>
             team.players.some((p) => p.id === profile.id)
@@ -193,13 +209,49 @@ function TeamSelection({
           );
         })}
       </div>
-      <div className="ml-6 w-96">
-        <h2 className="text-lg font-bold">Teams</h2>
+      <div className="flex flex-col ml-6 w-96 space-y-4">
+        <div className="flex text-lg space-x-24 font-bold text-orange-500 underline">
+          <h2>Seed</h2>
+          <h2>Team</h2>
+        </div>
         {teams.map((team) => (
-          <div key={team.id} className="mt-2 p-2 bg-blue-100 rounded-md">
-            Team {team.id}: {team.players.map((p) => p.name).join(" & ")}
+          <div
+            key={team.id}
+            className="flex items-center p-2 bg-blue-300 rounded-md"
+          >
+            <span className="font-bold text-xl px-2 flex items-center">
+              {" "}
+              {team.id}:
+            </span>
+            <div className="grid grid-cols-2 gap-2 w-full">
+              {team.players.map((p) => (
+                <div
+                  key={p.id}
+                  className="p-1 bg-white font-bold rounded shadow flex items-center justify-center"
+                >
+                  {p.name}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
+        {teams.length >= 3 && (
+          <Button
+            className={`h-24 ${
+              teams[teams.length - 1].players.length === 2
+                ? "bg-green-500 hover:bg-green-700"
+                : "bg-gray-500"
+            } text-white font-bold py-2 px-4 rounded`}
+            onClick={() => {
+              if (teams[teams.length - 1].players.length === 2) {
+                onFinalizeTournament(teams);
+              }
+            }}
+            disabled={teams[teams.length - 1].players.length !== 2}
+          >
+            Proceed with Selected Teams
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -243,9 +295,8 @@ const Bracket = ({
   );
 };
 
-const isSameTeam = (teamA: number[], teamB: number[]) => {
-  return teamA.every((id, index) => id === teamB[index]);
-};
+const isSameTeam = (teamA: number[], teamB: number[]) =>
+  teamA.every((id, index) => id === teamB[index]);
 
 const Matchup = ({
   match,
@@ -260,7 +311,7 @@ const Matchup = ({
 }) => {
   return (
     <div
-      className="flex flex-col bg-white shrink-0 items-center border rounded-lg h-40 w-full divide-y divide-black shadow-xl cursor-pointer overflow-hidden"
+      className="flex flex-col bg-white shrink-0 items-center border rounded-lg h-36 w-full divide-y divide-black shadow-xl cursor-pointer overflow-hidden"
       onClick={onClick}
     >
       {match.teams.map((team, index) => (
@@ -274,28 +325,32 @@ const Matchup = ({
                 <div className="text-lg font-bold self-center text-center px-2">
                   {team.seed}
                 </div>
-                {team.team.map((playerId) => (
-                  <div
-                    key={playerId}
-                    className="flex flex-col grow items-center space-x-1 px-2 py-1"
-                  >
-                    <img
-                      src={`${apiUrl}/pave/profilepics/${profiles[
-                        playerId
-                      ].name.toLowerCase()}`}
-                      alt={profiles[playerId].name}
-                      className="w-10 h-10 border border-gray-300 rounded-lg"
-                    />
-                    <p className="text-sm">{profiles[playerId].name}</p>
-                  </div>
-                ))}
+                {team.team.map((playerId) => {
+                  const player = profiles.find(
+                    (profile) => +profile.id === playerId
+                  );
+
+                  return (
+                    <div
+                      key={playerId}
+                      className="flex flex-col grow items-center space-x-1 px-2 py-1"
+                    >
+                      <img
+                        src={`${apiUrl}/pave/profilepics/${player?.name.toLowerCase()}`}
+                        alt={player?.name}
+                        className="w-10 h-10 border border-gray-300 rounded-lg"
+                      />
+                      <p className="text-sm">{player?.name}</p>
+                    </div>
+                  );
+                })}
               </div>
               <div
                 className={`text-lg font-bold px-2 py-1 border-l-2 h-full w-12 ${
-                  match.teams[0] && match.teams[1]
+                  match.teams[0] && match.teams[1] && !match.result
                     ? "bg-gray-200"
                     : match.result &&
-                      (isSameTeam(match.result.winner.team, team.team)
+                      (isSameTeam(match.result.winner?.team, team.team)
                         ? "bg-green-300"
                         : "bg-red-300")
                 }`}
@@ -337,6 +392,9 @@ export default ({
   setCurrentTournament: (tournament: Tournament | null) => void;
 }) => {
   const [currentScreen, setCurrentScreen] = useState("list"); // 'list', 'create', 'selectTeams', 'bracket'
+  const [tournamentName, setTournamentName] = useState("");
+  const [tournamentType, setTournamentType] = useState("single");
+  const [teams, setTeams] = useState([]);
 
   const handleCreateNewClick = () => {
     setCurrentScreen("create");
@@ -362,18 +420,27 @@ export default ({
       .catch((error) => console.error("Error posting tournament:", error));
   };
 
-  const onFinalizeTournament = () => {};
-
-  const handleCreateTournament = async (tournamentData) => {
-    const newTournament = {
-      ...tournamentData,
-      id: tournaments.length + 1,
-      teams: [],
-      rounds: {},
-    };
-    setTournaments([...tournaments, newTournament]);
-    setCurrentTournament(newTournament);
+  const handleCreateTournament = async () => {
     setCurrentScreen("selectTeams");
+  };
+
+  const handleFinalizeTournament = async () => {
+    await fetch(`${apiUrl}/pave/createTournament`, {
+      method: "POST",
+      body: JSON.stringify({
+        name: tournamentName,
+        teams: teams.map((team) => [team.players[0].id, team.players[1].id]),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setCurrentTournament(data))
+      .catch((error) => console.error("Error posting tournament:", error));
+
+    setCurrentScreen("bracket");
   };
 
   return (
@@ -399,12 +466,20 @@ export default ({
         />
       )}
       {currentScreen === "create" && (
-        <NewTournamentForm onCreate={handleCreateTournament} />
+        <NewTournamentForm
+          onCreate={handleCreateTournament}
+          tournamentName={tournamentName}
+          setTournamentName={setTournamentName}
+          tournamentType={tournamentType}
+          setTournamentType={setTournamentType}
+        />
       )}
       {currentScreen === "selectTeams" && (
         <TeamSelection
           profiles={profiles}
-          onFinalizeTournament={onFinalizeTournament}
+          onFinalizeTournament={handleFinalizeTournament}
+          teams={teams}
+          setTeams={setTeams}
         />
       )}
       {currentScreen === "bracket" && (

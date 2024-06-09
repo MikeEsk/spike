@@ -1,5 +1,3 @@
-import { useState } from "endr";
-import { Profile } from "./App";
 import Button from "./Button";
 
 const apiUrl = import.meta.env.VITE_API_URL;

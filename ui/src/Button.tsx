@@ -4,10 +4,12 @@ export default function Button({
   onClick,
   children,
   className,
+  type,
 }: {
-  onClick: () => void;
+  onClick: (e) => void;
   children: string;
   className: string;
+  type: string;
 }) {
   const [isPressed, setIsPressed] = useState(false);
   const handleMouseDown = () => setIsPressed(true);
@@ -23,6 +25,7 @@ export default function Button({
       className={`px-4 py-2 rounded-md text-white text-center align-middle transition-shadow 
                   ${isPressed ? "bg-gray-600 scale-[0.98]" : "bg-gray-500"} 
                   ${className}`}
+      type={type}
     >
       {children}
     </button>

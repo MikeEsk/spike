@@ -212,6 +212,7 @@ Bun.serve({
               status: 400,
               headers: {
                 "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
               },
             }
           );
@@ -242,6 +243,7 @@ Bun.serve({
           status: 201,
           headers: {
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
           },
         });
       } catch (error) {
