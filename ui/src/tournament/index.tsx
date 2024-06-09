@@ -13,9 +13,10 @@ function TournamentList({
   tournaments,
   onNewTournamentClick,
   onTournamentClick,
+  profiles,
 }) {
   return (
-    <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-36">
+    <div className="max-w-7xl mx-auto px-8 space-x-8 sm:px-6 lg:px-36">
       <div className="flex justify-between items-center border-b-2 border-gray-100 py-6 md:justify-start md:space-x-10">
         <div className="lg:flex-1">
           <h1 className="text-3xl font-bold leading-tight text-white">
@@ -33,25 +34,78 @@ function TournamentList({
         </div>
       </div>
 
-      {tournaments?.length > 0 ? (
-        <div className="flex flex-col p-8 space-y-4">
-          {tournaments.map((tournament: Tournament) => (
-            <Button
-              key={tournament.name}
-              className=" max-w-sm rounded overflow-hidden shadow-lg bg-purple-500"
-              onClick={() => onTournamentClick(tournament)}
-            >
-              {tournament}
-            </Button>
-          ))}
+      <div className="py-4 space-y-4">
+        <h2 className="text-2xl font-bold leading-tight text-white">Active</h2>
+
+        {tournaments?.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {tournaments.map((tournament: Tournament) => {
+              const lastRound =
+                tournament.rounds[
+                  Math.max(...Object.keys(tournament.rounds).map(Number))
+                ];
+              const lastMatch = lastRound[lastRound.length - 1];
+              const isCompleted = !!lastMatch.result?.winner;
+
+              return isCompleted ? null : (
+                <Button
+                  key={tournament.name}
+                  className="rounded flex w-full h-16 overflow-hidden shadow-lg bg-purple-500 font-bold text-xl"
+                  onClick={() => onTournamentClick(tournament)}
+                >
+                  <div className="mr-auto"> {tournament.name}</div>
+                </Button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-8 text-center">
+            <p className="text-white">
+              No tournaments found. Please create a new one.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="py-4 space-y-4">
+        <h2 className="text-xl font-bold leading-tight text-white">
+          Completed
+        </h2>
+        <div className="grid grid-cols-2 gap-4">
+          {tournaments.map((tournament: Tournament) => {
+            const lastRound =
+              tournament.rounds[
+                Math.max(...Object.keys(tournament.rounds).map(Number))
+              ];
+            const lastMatch = lastRound[lastRound.length - 1];
+            const isCompleted = !!lastMatch.result?.winner;
+
+            if (!isCompleted) return null;
+
+            return (
+              <Button
+                key={tournament.name}
+                className="flex justify-between rounded overflow-hidden shadow-lg bg-green-500 p-4"
+                onClick={() => onTournamentClick(tournament)}
+              >
+                <h3 className="text-lg font-bold">{tournament.name}</h3>
+                <div className="flex space-x-2">
+                  {lastMatch.result?.winner.team.map((member, index) => (
+                    <img
+                      key={index}
+                      src={`${apiUrl}/pave/profilepics/${profiles
+                        .find((profile) => profile.id === member)
+                        .name.toLowerCase()}`}
+                      alt={`Winner ${index + 1}`}
+                      className="h-10 w-10 rounded-full"
+                    />
+                  ))}
+                </div>
+              </Button>
+            );
+          })}
         </div>
-      ) : (
-        <div className="mt-8 text-center">
-          <p className="text-white">
-            No tournaments found. Please create a new one.
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -90,18 +144,8 @@ export default ({
 
   const onTournamentClick = (tournament) => {
     setCurrentScreen("bracket");
-
-    fetch(`${apiUrl}/pave/tournament`, {
-      method: "POST",
-      body: JSON.stringify({ name: tournament }),
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setCurrentTournament(data))
-      .catch((error) => console.error("Error posting tournament:", error));
+    const foundTournament = tournaments.find((t) => t.name === tournament.name);
+    setCurrentTournament(foundTournament || null);
   };
 
   const handleCreateTournament = async () => {
@@ -147,6 +191,7 @@ export default ({
           tournaments={tournaments}
           onNewTournamentClick={handleCreateNewClick}
           onTournamentClick={onTournamentClick}
+          profiles={profiles}
         />
       )}
       {currentScreen === "create" && (
