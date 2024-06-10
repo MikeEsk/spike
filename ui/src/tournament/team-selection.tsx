@@ -19,20 +19,34 @@ export default ({
 
   const handlePlayerClick = (profile: Profile) => {
     const updatedTeams = [...teams];
+    let teamExists = false;
 
-    if (updatedTeams.length < teamCounter) {
-      updatedTeams.push({ seed: teamCounter, team: [profile] });
-    } else {
-      const team = updatedTeams.find((t) => t.seed === teamCounter);
-      team?.team.push(profile);
+    // Check if the player is already added to any team
+    for (const team of updatedTeams) {
+      if (team.team.some((member) => member?.id === profile.id)) {
+        teamExists = true;
+        break;
+      }
     }
-    setTeams(updatedTeams);
 
-    if (updatedTeams.find((t) => t.seed === teamCounter)?.team?.length === 2) {
-      setTeamCounter(teamCounter + 1);
+    if (!teamExists) {
+      if (updatedTeams.length < teamCounter) {
+        updatedTeams.push({ seed: teamCounter, team: [profile] });
+      } else {
+        const team = updatedTeams.find((t) => t.seed === teamCounter);
+        if (team && team.team.length < 2) {
+          team.team.push(profile);
+        }
+      }
+      setTeams(updatedTeams);
+
+      if (
+        updatedTeams.find((t) => t.seed === teamCounter)?.team?.length === 2
+      ) {
+        setTeamCounter(teamCounter + 1);
+      }
     }
   };
-
   return (
     <div className="flex flex-row px-4 sm:px-6 lg:pl-32 py-6">
       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-2/3">
@@ -77,6 +91,15 @@ export default ({
         <div className="flex text-lg space-x-24 font-bold text-orange-500 underline">
           <h2>Seed</h2>
           <h2>Team</h2>
+          <Button
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+            onClick={() => {
+              setTeams([]);
+              setTeamCounter(1);
+            }}
+          >
+            Reset
+          </Button>
         </div>
         {teams.map((team) => (
           <div
