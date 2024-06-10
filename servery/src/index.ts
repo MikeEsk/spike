@@ -124,10 +124,10 @@ Bun.serve({
     if (url.pathname.startsWith(`${baseUrl}/createTournament`)) {
       try {
         const requestBody = await request.json();
-        const teamsArray = requestBody.teams;
+        const teams = requestBody.teams;
         const name = requestBody.name;
 
-        if (!Array.isArray(teamsArray) || teamsArray.length < 3) {
+        if (!Array.isArray(teams) || teams.length < 3) {
           return new Response(
             JSON.stringify({ error: "Invalid teams array" }),
             {
@@ -152,16 +152,10 @@ Bun.serve({
         ) {
           throw new Error(`Tournament with the name "${name}" already exists.`);
         }
-        const tournament = createTournamentFromTeams(teamsArray, name);
-        const tournamentString = JSON.stringify(tournament, null, 2);
-        const tournamentPath = `./tournaments/${tournament.name.replace(
-          /\s+/g,
-          "_"
-        )}.txt`;
 
-        await Bun.write(tournamentPath, tournamentString);
+        const tournament = await createTournamentFromTeams({ teams, name });
 
-        return new Response(tournamentString, {
+        return new Response(tournament, {
           status: 201,
           headers: {
             "Content-Type": "application/json",

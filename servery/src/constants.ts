@@ -21,3 +21,32 @@ export const profiles: { id: number; name: string }[] = [
 ];
 
 export const gamesPath = "games/log.txt";
+
+export const sendSlackMessage = async ({
+  subject,
+  title,
+}: {
+  subject: string;
+  title: string;
+}) => {
+  const slackMessage = {
+    text: subject,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `${title}\n${subject}` },
+      },
+    ],
+  };
+
+  const webhookUrl = process.env.SLACK_HOOK_URL;
+  if (webhookUrl) {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(slackMessage),
+    });
+  } else {
+    console.log("SLACK MESSAGE SENT: \n", slackMessage);
+  }
+};

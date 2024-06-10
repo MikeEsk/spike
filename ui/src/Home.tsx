@@ -149,7 +149,7 @@ export default ({
 
   return (
     <div className="flex overflow-hidden ">
-      <div className="w-1/6 min-w-0 p-4 bg-purple-700">
+      <div className="w-1/6 min-w-0 p-4">
         <img
           onClick={() => window.location.reload()}
           src={SpikeLogo}
@@ -157,7 +157,7 @@ export default ({
         />
       </div>
 
-      <div className="relative h-screen w-3/4 items-center justify-center">
+      <div className="bg-white relative h-screen w-3/4 items-center justify-center">
         <div className="flex h-screen self-center animate-cw-spin">
           {state.profiles.map((profile, index) => (
             <ProfileTile
@@ -214,7 +214,7 @@ export default ({
           </div>
         </div>
       </div>
-      <div className="flex flex-col w-1/6 bg-purple-700 p-4 space-y-4">
+      <div className="flex flex-col w-1/6 p-4 space-y-4">
         <Button
           onClick={onRandomize}
           className={state.isRandom ? "bg-green-500" : ""}
@@ -226,7 +226,7 @@ export default ({
           {statsIsLoading ? <Loader /> : "Stats"}
         </Button>
 
-        <Button onClick={onOpenTournament} className="bg-blue-600 text-white">
+        <Button onClick={onOpenTournament} className=" text-white bg-sky-500">
           Tournament
         </Button>
       </div>

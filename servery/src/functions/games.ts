@@ -1,4 +1,4 @@
-import { gamesPath, profiles } from "../constants";
+import { gamesPath, profiles, sendSlackMessage } from "../constants";
 
 const createGame = async (request: Request) => {
   try {
@@ -19,28 +19,9 @@ const createGame = async (request: Request) => {
     const loserTeam1 = profiles.find((p) => p.id === scores.loser.team[0]);
     const loserTeam2 = profiles.find((p) => p.id === scores.loser.team[1]);
     const subject = `${winnerTeam1?.name} & ${winnerTeam2?.name} defeated ${loserTeam1?.name} & ${loserTeam2?.name}`;
-    const scoreText = `*WE 🙂 WIN \`${scores.winner.score}-${scores.loser.score}\`*\n${subject}`;
+    const title = `*WE 🙂 WIN \`${scores.winner.score}-${scores.loser.score}\`*`;
 
-    const slackMessage = {
-      text: subject,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: scoreText,
-          },
-        },
-      ],
-    };
-
-    const webhookUrl = process.env.SLACK_HOOK_URL;
-    if (webhookUrl)
-      await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slackMessage),
-      });
+    await sendSlackMessage({ subject, title });
 
     return res.data.createGame.$.scores;
   } catch (error) {

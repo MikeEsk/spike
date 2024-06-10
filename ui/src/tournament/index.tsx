@@ -24,13 +24,12 @@ function TournamentList({
           </h1>
         </div>
         <div className="mt-3 sm:mt-0 sm:ml-3">
-          <button
-            type="button"
+          <Button
             className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             onClick={onNewTournamentClick} // Add this line
           >
             Create New Tournament
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -132,7 +131,9 @@ export default ({
   const [currentScreen, setCurrentScreen] = useState("list"); // 'list', 'create', 'selectTeams', 'bracket'
   const [tournamentName, setTournamentName] = useState("");
   const [tournamentType, setTournamentType] = useState("single");
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<
+    { seed: number; team: [Profile, Profile?] }[]
+  >([]);
 
   const handleCreateNewClick = () => {
     setCurrentScreen("create");
@@ -157,7 +158,7 @@ export default ({
       method: "POST",
       body: JSON.stringify({
         name: tournamentName,
-        teams: teams.map((team) => [team.players[0].id, team.players[1].id]),
+        teams: teams.map((team) => [team.team[0].id, team.team[1].id]),
       }),
       headers: {
         "Content-Type": "application/json",
@@ -165,7 +166,11 @@ export default ({
       },
     })
       .then((res) => res.json())
-      .then((data) => setCurrentTournament(data))
+      .then((data) => {
+        setCurrentTournament(data);
+        setTeams([]);
+        setTournamentName(null);
+      })
       .catch((error) => console.error("Error posting tournament:", error));
 
     setCurrentScreen("bracket");
@@ -175,13 +180,18 @@ export default ({
     <div className="absolute inset-0 bg-purple-800  ">
       <Button
         className="absolute top-0 left-0 m-4"
-        onClick={
-          currentScreen === "list"
-            ? onClose
-            : currentScreen === "selectTeams"
-            ? () => setCurrentScreen("create")
-            : () => setCurrentScreen("list")
-        }
+        onClick={() => {
+          if (currentScreen === "list") {
+            onClose();
+          } else if (currentScreen === "selectTeams") {
+            setCurrentScreen("create");
+          } else {
+            setTeams([]);
+            setTournamentName(null);
+            fetchTournaments();
+            setCurrentScreen("list");
+          }
+        }}
       >
         Back
       </Button>

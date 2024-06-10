@@ -1,4 +1,4 @@
-import { Profile, Team } from "../app";
+import { Profile } from "../app";
 import { useState } from "endr";
 import Button from "../button";
 
@@ -12,32 +12,33 @@ export default ({
 }: {
   profiles: Profile[];
   onFinalizeTournament: () => void;
-  teams: Team[];
-  setTeams: (teams: Team[]) => void;
+  teams: { seed: number; team: [Profile, Profile?] }[];
+  setTeams: (teams: { seed: number; team: [Profile, Profile?] }[]) => void;
 }) => {
   const [teamCounter, setTeamCounter] = useState(1);
 
-  const handlePlayerClick = (player) => {
+  const handlePlayerClick = (profile: Profile) => {
     const updatedTeams = [...teams];
 
     if (updatedTeams.length < teamCounter) {
-      updatedTeams.push({ id: teamCounter, players: [player] });
+      updatedTeams.push({ seed: teamCounter, team: [profile] });
     } else {
-      updatedTeams[teamCounter - 1].players.push(player);
+      const team = updatedTeams.find((t) => t.seed === teamCounter);
+      team?.team.push(profile);
     }
     setTeams(updatedTeams);
 
-    if (updatedTeams[teamCounter - 1].players.length === 2) {
+    if (updatedTeams.find((t) => t.seed === teamCounter)?.team?.length === 2) {
       setTeamCounter(teamCounter + 1);
     }
   };
 
   return (
-    <div className="flex flex-row px-4 sm:px-6 lg:pl-32 py-12">
+    <div className="flex flex-row px-4 sm:px-6 lg:pl-32 py-6">
       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 w-2/3">
         {profiles.map((profile) => {
           const team = teams.find((team) =>
-            team.players.some((p) => p.id === profile.id)
+            team.team.some((p) => +p.id === +profile.id)
           );
           const isSelected = !!team;
           return (
@@ -58,14 +59,14 @@ export default ({
                   alt={profile.name}
                 />
                 <div className="absolute bottom-0 right-0 bg-yellow-300 rounded-tl-lg p-1">
-                  <h5 className="text-sm font-medium text-gray-900 dark:text-purple-800 font-bold">
+                  <h5 className="text-sm text-gray-900 dark:text-purple-800 font-bold">
                     {profile.name}
                   </h5>
                 </div>
               </div>
               {isSelected && (
                 <div className="absolute inset-0 flex items-center justify-center text-6xl font-bold text-yellow-300">
-                  {team.id}
+                  {team.seed}
                 </div>
               )}
             </div>
@@ -79,15 +80,15 @@ export default ({
         </div>
         {teams.map((team) => (
           <div
-            key={team.id}
+            key={team.seed}
             className="flex items-center p-2 bg-blue-300 rounded-md"
           >
             <span className="font-bold text-xl px-2 flex items-center">
               {" "}
-              {team.id}:
+              {team.seed}:
             </span>
             <div className="grid grid-cols-2 gap-2 w-full">
-              {team.players.map((p) => (
+              {team.team.map((p) => (
                 <div
                   key={p.id}
                   className="p-1 bg-white font-bold rounded shadow flex items-center justify-center"
@@ -101,16 +102,16 @@ export default ({
         {teams.length >= 3 && (
           <Button
             className={`h-24 ${
-              teams[teams.length - 1].players.length === 2
+              teams[teams.length - 1].team.length === 2
                 ? "bg-green-500 hover:bg-green-700"
                 : "bg-gray-500"
             } text-white font-bold py-2 px-4 rounded`}
             onClick={() => {
-              if (teams[teams.length - 1].players.length === 2) {
-                onFinalizeTournament(teams);
+              if (teams[teams.length - 1].team.length === 2) {
+                onFinalizeTournament();
               }
             }}
-            disabled={teams[teams.length - 1].players.length !== 2}
+            disabled={teams[teams.length - 1].team.length !== 2}
           >
             Proceed with Selected Teams
           </Button>

@@ -7,35 +7,40 @@ import {
   MatchResult,
 } from "../types";
 
-const createTournamentFromTeams = (
-  teamsArray: Team[],
-  name: string
-): Tournament => {
-  const tournamentType: "single" | "double" = "single"; // This could be dynamic based on some condition or input
-  const tournamentName: string = name; // This could be dynamic based on some condition or input
-  const startTime: Date = new Date(); // This could be dynamic based on some condition or input
+const createTournamentFromTeams = async ({
+  teams,
+  name,
+}: {
+  teams: Team[];
+  name: string;
+}): Promise<string> => {
+  const tournamentType: "single" | "double" = "single";
+  const tournamentName: string = name;
+  const startTime: Date = new Date();
   const endTime: Date = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000); // Assuming the tournament ends in 7 days
 
-  if (teamsArray.length < 3) {
+  if (teams.length < 3) {
     throw new Error("A minimum of 3 teams is required to create a tournament.");
   }
-  const teams: TeamWithSeed[] = teamsArray.map((team, index) => ({
-    team: team,
-    seed: index + 1, // Seed based on the order of the array
-  }));
+  const teamsWithSeed: TeamWithSeed[] = teams.map(
+    (team: Team, index: number) => ({
+      team: team,
+      seed: index + 1, // Seed based on the order of the array
+    })
+  );
 
   // Sort teams by seed, ensuring that we handle potential null values
-  teams.sort((a, b) => {
+  teamsWithSeed.sort((a, b) => {
     if (a.seed === null) return 1;
     if (b.seed === null) return -1;
     return a.seed - b.seed;
   });
 
   // Calculate the total number of spots in the first round (next power of two)
-  const totalSpots = Math.pow(2, Math.ceil(Math.log2(teams.length)));
+  const totalSpots = Math.pow(2, Math.ceil(Math.log2(teamsWithSeed.length)));
 
   // Calculate the number of byes needed
-  const byes = totalSpots - teams.length;
+  const byes = totalSpots - teamsWithSeed.length;
 
   const rounds: { [roundNumber: number]: Match[] } = {};
   let matches: Match[] = []; // Matches for the current round
@@ -43,18 +48,18 @@ const createTournamentFromTeams = (
 
   // Create the first round with matches and byes
   let matchIndex = 0; // To keep track of the match index separately
-  for (let i = 0; i < teams.length; i++) {
+  for (let i = 0; i < teamsWithSeed.length; i++) {
     // If the current match index is less than the number of byes, this team gets a bye
     if (matchIndex < byes) {
       matches.push({
-        teams: [teams[i], null], // Team gets a bye
+        teams: [teamsWithSeed[i], null], // Team gets a bye
         bracketType: BracketType.Main,
         result: null,
       });
     } else {
       // Pair the teams for matches
-      const team1 = teams[i];
-      const team2 = i + 1 < teams.length ? teams[i + 1] : null;
+      const team1 = teamsWithSeed[i];
+      const team2 = i + 1 < teamsWithSeed.length ? teamsWithSeed[i + 1] : null;
       matches.push({
         teams: [team1, team2], // Pair the teams
         bracketType: BracketType.Main,
@@ -104,11 +109,19 @@ const createTournamentFromTeams = (
     name: tournamentName,
     startTime,
     endTime,
-    teams: teams,
+    teams: teamsWithSeed,
     rounds,
   };
 
-  return tournament;
+  const tournamentString = JSON.stringify(tournament, null, 2);
+  const tournamentPath = `./tournaments/${tournament.name.replace(
+    /\s+/g,
+    "_"
+  )}.txt`;
+
+  await Bun.write(tournamentPath, tournamentString);
+
+  return tournamentString;
 };
 
 const isSameMatch = (match: Match, matchResult: MatchResult): boolean => {
@@ -174,7 +187,15 @@ const updateTournamentWithMatchResult = (
         // Set the winning team in the next match
         nextMatch.teams[position] = {
           team: matchResult.winner.team,
-          seed: null, // You might want to calculate the seed for the next round
+          seed:
+            tournament.teams.find(
+              (t) =>
+                t.team &&
+                matchResult.winner &&
+                t.team.every(
+                  (id, index) => id === matchResult.winner?.team[index]
+                )
+            )?.seed || null,
         };
       }
     }
