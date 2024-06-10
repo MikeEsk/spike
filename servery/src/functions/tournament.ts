@@ -1,3 +1,4 @@
+import { profiles, sendSlackMessage } from "../constants";
 import {
   Team,
   Tournament,
@@ -113,6 +114,38 @@ const createTournamentFromTeams = async ({
     rounds,
   };
 
+  const title = `🏆 *New Tournament:* ${tournamentName}`;
+  const subject = Object.keys(rounds)
+    .slice(0, 2) // Only consider the first two rounds
+    .map((roundKey: string) => {
+      const round = rounds[+roundKey];
+      return round
+        .filter((match: Match) => match.teams[0] && match.teams[1]) // Filter out matches without two teams
+        .map((match: Match) => {
+          const team1Names =
+            match.teams[0]?.team
+              ?.map(
+                (id) =>
+                  profiles.find((profile) => profile.id === id)?.name ||
+                  "Unknown"
+              )
+              .join(" & ") || "Unknown";
+          const team2Names =
+            match.teams[1]?.team
+              ?.map(
+                (id) =>
+                  profiles.find((profile) => profile.id === id)?.name ||
+                  "Unknown"
+              )
+              .join(" & ") || "Unknown";
+          return `Round ${roundKey}: ${team1Names} vs ${team2Names}`;
+        })
+        .join("\n");
+    })
+    .join("\n");
+
+  await sendSlackMessage({ subject, title, useTitle: true });
+
   const tournamentString = JSON.stringify(tournament, null, 2);
   const tournamentPath = `./tournaments/${tournament.name.replace(
     /\s+/g,
@@ -174,8 +207,23 @@ const updateTournamentWithMatchResult = (
     // Update the match result for the current round
     tournament.rounds[roundNumber][matchIndex].result = matchResult;
 
-    // Load the winning team into the next round
-    if (roundNumber < Object.keys(tournament.rounds).length) {
+    // Send a Slack message about the match result
+    const winningTeamName = matchResult.winner?.team
+      .map((id) => profiles.find((profile) => profile.id === id)?.name)
+      .join(" and ");
+    const losingTeamName = matchResult.loser?.team
+      .map((id) => profiles.find((profile) => profile.id === id)?.name)
+      .join(" and ");
+    const defeatMessage = `${winningTeamName} defeated ${losingTeamName}`;
+    let nextMatchMessage = "";
+
+    // Check if this is the last match of the tournament
+    const isLastMatchOfTournament =
+      roundNumber === Object.keys(tournament.rounds).length &&
+      tournament.rounds[roundNumber].length === 1;
+
+    // Load the winning team into the next round if it's not the last match
+    if (!isLastMatchOfTournament) {
       const nextRound = tournament.rounds[roundNumber + 1];
       const nextMatchIndex = Math.floor(matchIndex / 2); // Determine the match slot in the next round
       const nextMatch = nextRound[nextMatchIndex];
@@ -197,8 +245,30 @@ const updateTournamentWithMatchResult = (
                 )
             )?.seed || null,
         };
+
+        // Prepare the next match message
+        const nextMatchTeamNames = nextMatch.teams
+          .map((teamWithSeed) =>
+            teamWithSeed?.team
+              ?.map((id) => profiles.find((profile) => profile.id === id)?.name)
+              .join(" and ")
+          )
+          .filter(Boolean);
+        if (nextMatchTeamNames.length === 2) {
+          nextMatchMessage = `:crossed_swords: Next match: ${nextMatchTeamNames[0]} vs ${nextMatchTeamNames[1]}`;
+        }
       }
+    } else {
+      // Prepare the award message for the winners since it's the last match
+      nextMatchMessage = `:trophy: ${winningTeamName} won the tournament! :confetti_ball:`;
     }
+
+    // Send the Slack message
+    sendSlackMessage({
+      title: `Tournament: *${tournament.name}*`,
+      subject: defeatMessage,
+      message: nextMatchMessage,
+    });
   } else {
     throw new Error("Match not found in the tournament.");
   }

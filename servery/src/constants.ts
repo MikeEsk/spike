@@ -25,16 +25,23 @@ export const gamesPath = "games/log.txt";
 export const sendSlackMessage = async ({
   subject,
   title,
+  useTitle,
+  message,
 }: {
   subject: string;
   title: string;
+  message?: string;
+  useTitle?: boolean;
 }) => {
   const slackMessage = {
-    text: subject,
+    text: useTitle ? title : subject,
     blocks: [
       {
         type: "section",
-        text: { type: "mrkdwn", text: `${title}\n${subject}` },
+        text: {
+          type: "mrkdwn",
+          text: `${title}\n${subject}${message ? `\n${message}` : ""}`,
+        },
       },
     ],
   };
