@@ -18,7 +18,7 @@ export const profiles: { id: number; name: string }[] = [
   { id: 17, name: "Hector" },
   { id: 18, name: "Madison" },
   { id: 19, name: "Chris" },
-  { id: 20, name: "Marlee" },
+  { id: 20, name: "Marley" },
   { id: 21, name: "Allen" },
 ];
 
