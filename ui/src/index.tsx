@@ -1,6 +1,6 @@
 import { render } from "endr";
-import App from "./app";
+import App from "./App";
 
 const { document } = globalThis;
 
-render(<App />, document.getElementById("root"));
+render(<App />, document.getElementById("root")!);

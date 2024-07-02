@@ -1,6 +1,6 @@
-import { Profile } from "../app";
+import { Profile } from "../App";
 import { useState } from "endr";
-import Button from "../button";
+import Button from "../Button";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -59,7 +59,7 @@ export default ({
             <div
               key={profile.id}
               className="relative"
-              onClick={() => handlePlayerClick(profile)}
+              onclick={() => handlePlayerClick(profile)}
               style={{ aspectRatio: "1 / 1" }}
             >
               <div
