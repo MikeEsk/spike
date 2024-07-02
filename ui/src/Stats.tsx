@@ -1,4 +1,4 @@
-import Button from "./button";
+import Button from "./Button";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -91,7 +91,7 @@ export default GridComponent;
 const Table = ({ columns, data, playerNames }) => (
   <div
     className="overflow-x-auto flex flex-col flex-grow bg-white shadow rounded "
-    onScroll={(e) => {
+    onscroll={(e) => {
       e.stopPropagation();
     }}
   >
