@@ -1,4 +1,4 @@
-import { Match, Profile, Tournament } from "../app";
+import { Match, Profile, Tournament } from "../App";
 
 const isSameTeam = (teamA: number[], teamB: number[]) =>
   teamA.every((id, index) => id === teamB[index]);
@@ -19,7 +19,7 @@ const Matchup = ({
   return (
     <div
       className="flex flex-col bg-white shrink-0 items-center border rounded-lg h-36 w-full divide-y divide-black shadow-xl cursor-pointer overflow-hidden"
-      onClick={onClick}
+      onclick={onClick}
     >
       {match.teams.map((team, index) => (
         <div
