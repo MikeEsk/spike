@@ -1,15 +1,15 @@
 import { useState } from "endr";
 
 export default function Button({
-  onClick,
+  onclick,
   children,
   className,
   type,
 }: {
-  onClick: (e) => void;
+  onclick: (e) => void;
   children: string;
   className?: string;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
 }) {
   const [isPressed, setIsPressed] = useState(false);
   const handleMouseDown = () => setIsPressed(true);
@@ -17,7 +17,7 @@ export default function Button({
 
   return (
     <button
-      onclick={onClick}
+      onclick={onclick}
       onpointerdown={handleMouseDown}
       onpointerup={handleMouseUp}
       onpointerleave={handleMouseUp}

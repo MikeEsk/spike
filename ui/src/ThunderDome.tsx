@@ -183,7 +183,7 @@ export default ({
       >
         <div
           className="p-4"
-          onClick={() =>
+          onclick={() =>
             handleScoreEntry({
               winnerTeam: [selectedProfiles[2].id, selectedProfiles[3].id],
               loserTeam: [selectedProfiles[0].id, selectedProfiles[1].id],
@@ -210,7 +210,7 @@ export default ({
           currentTournament={currentTournament}
         />
       )}
-      <Button className="absolute top-2 left-2" onClick={onClose}>
+      <Button className="absolute top-2 left-2" onclick={onClose}>
         Back
       </Button>
     </div>

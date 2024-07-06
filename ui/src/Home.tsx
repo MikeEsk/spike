@@ -11,12 +11,12 @@ const ProfileTile = ({
   profile,
   itemCount,
   index,
-  onClick,
+  onclick,
   size,
 }: {
   profile: Profile;
   index: number;
-  onClick: () => void;
+  onclick: () => void;
   itemCount: number;
   size: { width: number; height: number };
 }) => {
@@ -46,7 +46,7 @@ const ProfileTile = ({
         key={profile.id}
         src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
         alt={profile.name}
-        onclick={onClick}
+        onclick={onclick}
         onpointerdown={handlePointerDown}
         onpointerup={handlePointerUp}
         onpointerleave={handlePointerUp}
@@ -151,7 +151,7 @@ export default ({
     <div className="flex overflow-hidden ">
       <div className="w-1/6 min-w-0 p-4">
         <img
-          onClick={() => window.location.reload()}
+          onclick={() => window.location.reload()}
           src={SpikeLogo}
           className="w-full"
         />
@@ -164,7 +164,7 @@ export default ({
               profile={profile}
               itemCount={state.profiles.length}
               index={index}
-              onClick={() => handleProfileClick(profile)}
+              onclick={() => handleProfileClick(profile)}
               size={size}
             />
           ))}
@@ -184,7 +184,7 @@ export default ({
               state.selectedProfiles.length !== 4 && (
                 <Button
                   className="absolute px-[0.7rem] py-[0.3rem] -bottom-1 -right-1 text-xl pointer-events-auto opacity-80"
-                  onClick={onClearProfiles}
+                  onclick={onClearProfiles}
                 >
                   &times;
                 </Button>
@@ -216,17 +216,17 @@ export default ({
       </div>
       <div className="flex flex-col w-1/6 p-4 space-y-4">
         <Button
-          onClick={onRandomize}
+          onclick={onRandomize}
           className={state.isRandom ? "bg-green-500" : ""}
         >
           Random
         </Button>
 
-        <Button onClick={onOpenStats} className="bg-orange-500 text-white">
+        <Button onclick={onOpenStats} className="bg-orange-500 text-white">
           {statsIsLoading ? <Loader /> : "Stats"}
         </Button>
 
-        <Button onClick={onOpenTournament} className=" text-white bg-sky-500">
+        <Button onclick={onOpenTournament} className=" text-white bg-sky-500">
           Tournament
         </Button>
       </div>

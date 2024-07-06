@@ -8,18 +8,18 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const Matchup = ({
   match,
   profiles,
-  onClick,
+  onclick,
   roundNumber,
 }: {
   match: Match;
   profiles: Profile[];
-  onClick: () => void;
+  onclick: () => void;
   roundNumber: number;
 }) => {
   return (
     <div
       className="flex flex-col bg-white shrink-0 items-center border rounded-lg h-36 w-full divide-y divide-black shadow-xl cursor-pointer overflow-hidden"
-      onclick={onClick}
+      onclick={onclick}
     >
       {match.teams.map((team, index) => (
         <div
@@ -121,7 +121,7 @@ export default ({
                     <Matchup
                       match={match}
                       profiles={profiles}
-                      onClick={() => {
+                      onclick={() => {
                         if (!match.result) openThunderDome(match);
                       }}
                       roundNumber={round}

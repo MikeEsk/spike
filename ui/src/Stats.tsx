@@ -77,7 +77,7 @@ const GridComponent = ({ data, onCloseStats }) => {
       </div>
 
       <Button
-        onClick={onCloseStats}
+        onclick={onCloseStats}
         className="absolute top-2 right-2 bg-orange-500 text-white text-3xl font-bold opacity-70"
       >
         &times;

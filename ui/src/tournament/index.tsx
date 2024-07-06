@@ -26,7 +26,7 @@ function TournamentList({
         <div className="mt-3 sm:mt-0 sm:ml-3">
           <Button
             className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            onClick={onNewTournamentClick} // Add this line
+            onclick={onNewTournamentClick} // Add this line
           >
             Create New Tournament
           </Button>
@@ -50,7 +50,7 @@ function TournamentList({
                 <Button
                   key={tournament.name}
                   className="rounded flex w-full h-16 overflow-hidden shadow-lg bg-purple-500 font-bold text-xl"
-                  onClick={() => onTournamentClick(tournament)}
+                  onclick={() => onTournamentClick(tournament)}
                 >
                   <div className="mr-auto"> {tournament.name}</div>
                 </Button>
@@ -85,7 +85,7 @@ function TournamentList({
               <Button
                 key={tournament.name}
                 className="flex justify-between rounded overflow-hidden shadow-lg bg-green-500 p-4"
-                onClick={() => onTournamentClick(tournament)}
+                onclick={() => onTournamentClick(tournament)}
               >
                 <h3 className="text-lg font-bold">{tournament.name}</h3>
                 <div className="flex space-x-2">
@@ -180,7 +180,7 @@ export default ({
     <div className="absolute inset-0 bg-purple-800  ">
       <Button
         className="absolute top-0 left-0 m-4"
-        onClick={() => {
+        onclick={() => {
           if (currentScreen === "list") {
             onClose();
           } else if (currentScreen === "selectTeams") {

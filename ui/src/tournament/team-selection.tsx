@@ -93,7 +93,7 @@ export default ({
           <h2>Team</h2>
           <Button
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-            onClick={() => {
+            onclick={() => {
               setTeams([]);
               setTeamCounter(1);
             }}
@@ -129,7 +129,7 @@ export default ({
                 ? "bg-green-500 hover:bg-green-700"
                 : "bg-gray-500"
             } text-white font-bold py-2 px-4 rounded`}
-            onClick={() => {
+            onclick={() => {
               if (teams[teams.length - 1].team.length === 2) {
                 onFinalizeTournament();
               }

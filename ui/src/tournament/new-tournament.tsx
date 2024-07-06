@@ -6,7 +6,7 @@ export default ({
   setTournamentName,
   tournamentType,
   setTournamentType,
-}) =>
+}) => (
   <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       <div className="px-4 py-5 sm:px-6">
@@ -25,7 +25,7 @@ export default ({
                 Tournament Name
               </label>
               <input
-                oninput={({target: { value }}) => setTournamentName(value)}
+                oninput={({ target: { value } }) => setTournamentName(value)}
                 type="text"
                 name="tournament-name"
                 id="tournament-name"
@@ -56,7 +56,7 @@ export default ({
           </div>
           <div className="mt-8">
             <Button
-              onClick={onCreate}
+              onclick={onCreate}
               className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Pick Teams
@@ -67,3 +67,4 @@ export default ({
       </div>
     </div>
   </div>
+);
