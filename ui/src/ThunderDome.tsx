@@ -1,8 +1,6 @@
 import { useState } from "endr";
-import { Profile, Tournament } from "./app";
-import Button from "./button";
-
-import { Scores } from "./app";
+import { Profile, Tournament, Scores } from "./App";
+import Button from "./Button";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -22,7 +20,7 @@ const Keypad = ({
   return (
     <div className={`${baseClass} ${slideInClass}`}>
       <div className="relative bg-white p-8 rounded-lg shadow-lg">
-        <button onClick={onClose} className="absolute top-2 right-2 text-3xl">
+        <button onclick={onClose} className="absolute top-2 right-2 text-3xl">
           &times;
         </button>
         <h2 className="text-xl font-semibold mb-4">
@@ -31,7 +29,7 @@ const Keypad = ({
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onchange={(e) => setInput(e.target.value)}
           className="text-center text-3xl p-4 bg-gray-100 w-full mb-4"
         />
         <div className="grid grid-cols-3 gap-2">
@@ -39,7 +37,7 @@ const Keypad = ({
             <button
               key={num + 1}
               className="bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
-              onClick={() => setInput(input + (num + 1))}
+              onclick={() => setInput(input + (num + 1))}
             >
               {num + 1}
             </button>
@@ -49,13 +47,13 @@ const Keypad = ({
           <button
             key={0}
             className="w-full bg-blue-500 text-white text-2xl p-3 rounded hover:bg-blue-700 transition"
-            onClick={() => setInput(input + 0)}
+            onclick={() => setInput(input + 0)}
           >
             0
           </button>
           <button
             className="bg-yellow-300 text-white text-2xl p-3 rounded hover:bg-gray-700 transition"
-            onClick={() => setInput(input.slice(0, -1))}
+            onclick={() => setInput(input.slice(0, -1))}
           >
             ←
           </button>
@@ -64,7 +62,7 @@ const Keypad = ({
           {!type && !currentTournament && (
             <button
               className=" bg-orange-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
-              onClick={() =>
+              onclick={() =>
                 input && onComplete({ score: input, rematch: true })
               }
             >
@@ -74,7 +72,7 @@ const Keypad = ({
 
           <button
             className=" bg-green-500 text-white p-2 rounded-full w-full hover:bg-green-700 transition"
-            onClick={() => input && onComplete({ score: input })}
+            onclick={() => input && onComplete({ score: input })}
           >
             {!type ? "Complete" : "Next →"}
           </button>
@@ -160,11 +158,11 @@ export default ({
         className={`w-1/2 h-full flex flex-col items-center justify-center bg-blue-500 transform -translate-x-full ${
           isReversing ? "animate-slideOutLeft" : "animate-slideInLeft"
         }`}
-        onAnimationEnd={handleAnimationEnd}
+        onanimationend={handleAnimationEnd}
       >
         <div
           className="p-4"
-          onClick={() =>
+          onclick={() =>
             handleScoreEntry({
               winnerTeam: [selectedProfiles[0].id, selectedProfiles[1].id],
               loserTeam: [selectedProfiles[2].id, selectedProfiles[3].id],
@@ -181,7 +179,7 @@ export default ({
         className={`w-1/2 h-full flex flex-col items-center justify-center bg-red-500 transform translate-x-full ${
           isReversing ? "animate-slideOutRight" : "animate-slideInRight"
         }`}
-        onAnimationEnd={handleAnimationEnd}
+        onanimationend={handleAnimationEnd}
       >
         <div
           className="p-4"

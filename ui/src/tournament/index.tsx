@@ -1,8 +1,8 @@
 import { useEffect, useState } from "endr";
-import Button from "../button";
-import { Profile } from "../app";
+import Button from "../Button";
+import { Profile } from "../App";
 
-import { Tournament, Match } from "../app";
+import { Tournament, Match } from "../App";
 import TeamSelection from "./team-selection";
 import Bracket from "./bracket";
 import NewTournament from "./new-tournament";

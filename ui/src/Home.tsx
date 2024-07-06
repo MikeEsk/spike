@@ -2,8 +2,8 @@ import { useEffect, useState } from "endr";
 import JTLogo from "./assets/jtlogo.png";
 import Bell from "./assets/bell.mp3";
 import SpikeLogo from "./assets/spikelogo.png";
-import Button from "./button";
-import { GameState, Profile } from "./app";
+import Button from "./Button";
+import { GameState, Profile } from "./App";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -46,10 +46,10 @@ const ProfileTile = ({
         key={profile.id}
         src={`${apiUrl}/pave/profilepics/${profile.name.toLowerCase()}`}
         alt={profile.name}
-        onClick={onClick}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
+        onclick={onClick}
+        onpointerdown={handlePointerDown}
+        onpointerup={handlePointerUp}
+        onpointerleave={handlePointerUp}
       />
     </div>
   );
