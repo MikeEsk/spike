@@ -96,7 +96,7 @@ export default ({
   }, []);
 
   useEffect(() => {
-    let interval;
+    let interval: number;
     const duration = 4500; // 4.5 seconds total duration
     const steps = 1000;
     const stepDuration = duration / steps;
