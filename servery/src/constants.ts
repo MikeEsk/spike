@@ -20,6 +20,7 @@ export const profiles: { id: number; name: string }[] = [
   { id: 19, name: "Chris" },
   { id: 20, name: "Marley" },
   { id: 21, name: "Allen" },
+  { id: 22, name: "Matthew" },
 ];
 
 export const gamesPath = "games/log.txt";
